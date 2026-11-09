@@ -34,10 +34,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail --location --silent --show-error -o /tmp/rsigma.tar.gz \
+          archive="${RUNNER_TEMP}/rsigma.tar.gz"
+          extract_dir="${RUNNER_TEMP}/rsigma-extract"
+          mkdir -p "${extract_dir}"
+          curl --fail --location --silent --show-error -o "${archive}" \
             "https://github.com/timescale/rsigma/releases/download/v${RSIGMA_VERSION}/rsigma-x86_64-unknown-linux-gnu.tar.gz"
-          tar -xzf /tmp/rsigma.tar.gz -C /tmp
-          sudo install -m 0755 /tmp/rsigma /usr/local/bin/rsigma
+          tar --no-same-owner --no-same-permissions -xzf "${archive}" -C "${extract_dir}"
+          sudo install -m 0755 "${extract_dir}/rsigma" /usr/local/bin/rsigma
           rsigma --version
       - name: Check Sigma rules are valid
         run: rsigma rule validate rules/sigma/
