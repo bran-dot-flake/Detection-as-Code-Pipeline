@@ -146,8 +146,14 @@ def run_count_search(
     if compiled.startswith("|"):
         raise RuntimeError(f"Unexpected compiled SPL form: {compiled}")
 
+    # Find only this run by raw JSON first, then explicitly extract JSON fields.
+    # This avoids depending on automatic search-time field extraction being
+    # available/configured for the fresh lab sourcetype.
+    raw_marker = f'"DaCTestRunId":"{run_id}"'
     search = (
-        f'search index="{index}" DaCTestRunId="{run_id}" ({compiled}) '
+        f'search index="{index}" _raw="*{raw_marker}*" '
+        "| spath "
+        f"| search ({compiled}) "
         "| stats count as count"
     )
     response = session.post(
@@ -173,8 +179,9 @@ def wait_until_indexed(
     run_id: str,
     expected: int,
 ) -> None:
+    raw_marker = f'"DaCTestRunId":"{run_id}"'
     search = (
-        f'search index="{index}" DaCTestRunId="{run_id}" '
+        f'search index="{index}" _raw="*{raw_marker}*" '
         "| stats count as count"
     )
     deadline = time.time() + 30
