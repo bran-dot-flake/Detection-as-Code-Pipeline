@@ -10,6 +10,8 @@ logsource:
   category: process_creation
   product: windows
 detection:
+  selection_event:
+    EventID: 1
   selection_image:
     Image|endswith:
       - '\powershell.exe'
@@ -19,7 +21,7 @@ detection:
       - ' -ep bypass'
       - ' -exec bypass'
       - ' -executionpolicy bypass'
-  condition: selection_image and selection_bypass
+  condition: selection_event and selection_image and selection_bypass
 fields:
   - Image
   - CommandLine
