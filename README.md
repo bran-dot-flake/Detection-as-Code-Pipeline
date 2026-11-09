@@ -15,6 +15,7 @@ Evidence-backed Sigma detections are tested, compiled to SPL, verified against l
 
 <p align="center">
   <a href="#pipeline">Pipeline</a> ·
+  <a href="#overview">Overview</a> ·
   <a href="#coverage">Coverage</a> ·
   <a href="#repository-guide">Repository Guide</a> ·
   <a href="#documentation">Documentation</a>
@@ -29,6 +30,12 @@ Evidence-backed Sigma detections are tested, compiled to SPL, verified against l
 </p>
 
 Git defines the active detection state. Managed searches removed from Git are disabled in Splunk rather than deleted.
+
+## Overview
+
+This project turns detection engineering into a controlled CI/CD workflow. Sigma rules and test fixtures live in Git, pull requests run validation and regression tests, passing rules compile to Splunk SPL, and the generated searches are executed against an isolated live Splunk test index before deployment.
+
+After verification, the pipeline snapshots the current managed state, deploys and reconciles detections through the Splunk REST API, then monitors the live searches for scheduling, version drift, query drift, and execution health. Recovery is manual and snapshot-based so changes remain traceable and reversible.
 
 ## Coverage
 
