@@ -1,104 +1,67 @@
-# Detection-as-Code Pipeline
+<h1 align="center">Detection-as-Code Pipeline</h1>
 
-A Splunk-focused Detection-as-Code pipeline that treats Sigma detections like software: versioned, tested, reviewed, compiled, verified against a live SIEM, deployed from a protected branch, monitored for drift, and recoverable to a previous state.
+<p align="center"><strong>Sigma · GitHub Actions · Splunk Enterprise · Detection Lifecycle</strong></p>
 
-[![Detection as Code](https://github.com/bran-dot-flake/Detection-as-Code-Pipeline/actions/workflows/detections.yml/badge.svg)](https://github.com/bran-dot-flake/Detection-as-Code-Pipeline/actions/workflows/detections.yml)
+<p align="center">
+  <img src="https://img.shields.io/badge/version-v1.0.0-7C3AED?style=flat-square" alt="v1.0.0">
+  <img src="https://img.shields.io/badge/detections-Sigma-0078D4?style=flat-square" alt="Sigma">
+  <img src="https://img.shields.io/badge/SIEM-Splunk-2EA043?style=flat-square" alt="Splunk">
+  <a href="https://github.com/bran-dot-flake/Detection-as-Code-Pipeline/actions/workflows/detections.yml"><img src="https://github.com/bran-dot-flake/Detection-as-Code-Pipeline/actions/workflows/detections.yml/badge.svg" alt="Detection as Code"></a>
+</p>
 
-## Overview
+<p align="center">
+Evidence-backed Sigma detections are tested, compiled to SPL, verified against live Splunk, deployed from protected Git, monitored for drift, and recoverable by snapshot rollback.
+</p>
 
-The project demonstrates a complete detection lifecycle rather than only storing detection rules.
+<p align="center">
+  <a href="#pipeline">Pipeline</a> ·
+  <a href="#coverage">Coverage</a> ·
+  <a href="#repository-guide">Repository Guide</a> ·
+  <a href="#documentation">Documentation</a>
+</p>
 
-```text
-Sigma rules
-    |
-    v
-Evidence-backed tests
-    |
-    v
-Protected pull request
-    |
-    v
-Sigma -> Splunk SPL
-    |
-    v
-Live Splunk verification
-    |
-    v
-Snapshot -> Deploy -> Reconcile
-    |
-    v
-Health / drift monitoring
-    |
-    v
-Manual rollback
-```
+---
 
-Git is the desired state. Rules removed from the repository are disabled in Splunk rather than deleted, preserving history while keeping the active deployment aligned with source control.
+## Pipeline
 
-## What it includes
+<p align="center">
+  <img src="images/detection-as-code-pipeline.svg" width="100%" alt="Detection-as-Code lifecycle from Sigma rules through testing, protected promotion, Splunk deployment, monitoring, and recovery">
+</p>
 
-| Capability | Implementation |
+Git defines the active detection state. Managed searches removed from Git are disabled in Splunk rather than deleted.
+
+## Coverage
+
+| Detections | Event corpora | Rule/corpus expectations | Investigation sources |
+|---:|---:|---:|---:|
+| 9 | 13 | 117 | 2 |
+
+Rules are derived from the [Agent Tesla malware analysis](https://github.com/bran-dot-flake/Agent-Tesla-Malware-Analysis-and-Detection-Engineering) and [Threat Hunting with Splunk](https://github.com/bran-dot-flake/Threat-Hunting-with-Splunk-Hack-The-Box-Writeup).
+
+## Core controls
+
+| Stage | Control |
 |---|---|
-| Detection source | Sigma |
-| Target SIEM | Splunk Enterprise |
-| CI/CD | GitHub Actions |
-| Detection tests | Positive, benign, and near-miss event fixtures |
-| Regression coverage | Complete rule × corpus expectation matrix |
-| Live validation | Compiled SPL executed against a dedicated `dac_test` index |
-| Promotion | Protected `main` branch with required checks |
-| Deployment | Idempotent Splunk REST API create/update |
-| Desired-state reconciliation | Git-absent managed searches are disabled |
-| Health | Schedule, execution state, version metadata, and SPL drift |
-| Recovery | Pre-deploy snapshots and manual verified rollback |
+| Test | Positive, benign, and near-miss fixtures with a complete expectation matrix |
+| Promote | Protected `main` branch with required CI checks |
+| Verify | Compiled SPL executed against isolated `dac_test` data in live Splunk |
+| Deploy | Idempotent REST deployment with pre-deploy snapshot and desired-state reconciliation |
+| Monitor | Scheduled health checks for execution state, version drift, and SPL drift |
+| Recover | Manual, verified rollback from retained deployment snapshots |
 
-## Current coverage
+Pull-request code runs only on GitHub-hosted runners. Private Splunk access occurs only after trusted promotion to `main`.
 
-```text
-9 Sigma detections
-13 event corpora
-117 explicit rule/corpus expectations
-2 investigation sources
-```
+## Repository Guide
 
-The detection set is derived from:
-
-- [Agent Tesla Malware Analysis and Detection Engineering](https://github.com/bran-dot-flake/Agent-Tesla-Malware-Analysis-and-Detection-Engineering)
-- [Threat Hunting with Splunk](https://github.com/bran-dot-flake/Threat-Hunting-with-Splunk-Hack-The-Box-Writeup)
-
-The rules include both investigation-specific analytics and more reusable behavioral detections.
-
-## Deployment model
-
-Pull requests run only on GitHub-hosted runners. Code is allowed onto the private Splunk runner only after the required checks pass and the change reaches protected `main`.
-
-Before each deployment, the current managed Splunk configuration is saved as a rollback artifact. After deployment, the pipeline verifies the live saved searches and records health metadata. A separate scheduled workflow checks the deployed state every six hours.
-
-## Repository layout
-
-```text
-rules/sigma/          Sigma detections
-tests/sample-logs/    Positive, benign, and near-miss fixtures
-ci/expectations.yml   Complete expected-match matrix
-scripts/              Build, test, deploy, health, snapshot, and rollback tooling
-.github/workflows/    CI/CD, health, and rollback workflows
-docs/                 Detection, testing, and operations notes
-```
+| Resource | Purpose |
+|---|---|
+| [`rules/sigma/`](rules/sigma/) | Sigma detections |
+| [`tests/sample-logs/`](tests/sample-logs/) | Positive, benign, and near-miss fixtures |
+| [`ci/expectations.yml`](ci/expectations.yml) | Complete expected-match matrix |
+| [`scripts/`](scripts/) | Build, integration, deployment, health, snapshot, and rollback tooling |
+| [`.github/workflows/`](.github/workflows/) | CI/CD, health, rollback, and release workflows |
+| [`docs/`](docs/) | Focused implementation and operations notes |
 
 ## Documentation
 
-- [Detections](docs/DETECTIONS.md)
-- [Testing model](docs/TESTING.md)
-- [Operations and recovery](docs/OPERATIONS.md)
-- [Contributing](CONTRIBUTING.md)
-
-## Design choices
-
-- Test evidence is kept separate from the production `sysmon` index.
-- The self-hosted runner is never used for pull-request code.
-- Managed searches are disabled rather than deleted when removed from Git.
-- Rollback is manual and verified; it is not triggered automatically.
-- TLS verification is disabled only in the isolated lab because Splunk uses a self-signed certificate.
-
-## Status
-
-The v1.0 scope is the complete Splunk detection lifecycle: author, test, review, compile, verify, deploy, reconcile, monitor, and recover.
+[Detections](docs/DETECTIONS.md) · [Testing](docs/TESTING.md) · [Operations & Recovery](docs/OPERATIONS.md) · [Contributing](CONTRIBUTING.md)
