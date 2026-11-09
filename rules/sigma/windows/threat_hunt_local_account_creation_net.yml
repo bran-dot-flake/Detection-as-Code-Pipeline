@@ -10,6 +10,8 @@ logsource:
   category: process_creation
   product: windows
 detection:
+  selection_event:
+    EventID: 1
   selection_image:
     Image|endswith:
       - '\net.exe'
@@ -18,7 +20,7 @@ detection:
     CommandLine|contains: ' user '
   selection_add:
     CommandLine|contains: ' /add'
-  condition: selection_image and selection_user and selection_add
+  condition: selection_event and selection_image and selection_user and selection_add
 fields:
   - Image
   - CommandLine
