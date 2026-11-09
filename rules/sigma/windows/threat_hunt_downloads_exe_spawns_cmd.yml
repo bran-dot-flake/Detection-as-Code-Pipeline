@@ -11,6 +11,7 @@ logsource:
   product: windows
 detection:
   selection:
+    EventID: 1
     Image|endswith: '\cmd.exe'
     ParentImage|contains: '\Downloads\'
   condition: selection
