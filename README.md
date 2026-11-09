@@ -237,6 +237,45 @@ Sigma rule
   -> expected live result count
 ```
 
+## Detection health telemetry
+
+Deployment now stamps every managed Splunk saved search with lifecycle metadata:
+
+```text
+rule_id=<Sigma UUID>
+commit=<Git commit deployed>
+query_sha256=<hash of normalized deployed SPL>
+```
+
+After each deployment, and every six hours through the separate
+`Detection Health` workflow, the self-hosted runner queries Splunk and produces
+both Markdown and JSON health reports.
+
+The health check verifies:
+
+- every repository rule has a corresponding `DaC -` saved search;
+- the saved search is enabled and scheduled;
+- its deployed rule ID matches the repository rule;
+- its deployed commit matches the current trusted `main` revision;
+- the live SPL still matches the hash recorded at deployment time;
+- recent saved-search execution history is available and the latest job is not in
+  a failed/cancelled state;
+- next-run, last-run, result-count, and scheduler state are captured for reporting.
+
+Missing, disabled, unscheduled, stale, drifted, or failed detections make the
+health job fail. A brand-new detection with no scheduler history yet is reported
+as a warning instead of a false failure.
+
+Reports are attached to GitHub Actions as:
+
+```text
+reports/splunk-health.md
+reports/splunk-health.json
+```
+
+The Markdown report is also appended to the GitHub Actions job summary so health
+can be reviewed without downloading the artifact.
+
 ## Splunk deployment
 
 Passing detections are created or updated idempotently through the Splunk REST API
@@ -295,10 +334,10 @@ isolated lab uses Splunk's default self-signed certificate.
 
 ## Next milestones
 
-The core CI/CD path is complete. Useful extensions now include:
+The core CI/CD and health-monitoring paths are complete. Useful extensions now include:
 
-- detection-health and scheduler telemetry;
-- rollback/version metadata for deployed saved searches;
+- rollback/version recovery for deployed saved searches;
+- alert-volume and false-positive telemetry from analyst outcomes;
 - additional investigation-backed rule families;
 - a second compilation/deployment target such as Microsoft Sentinel KQL.
 
