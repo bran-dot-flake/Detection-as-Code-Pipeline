@@ -1,0 +1,31 @@
+title: AgentTesla-01 FTP Connection
+id: e308373e-277b-47f7-aa9e-2dbcbc61478b
+status: experimental
+description: Sysmon Event ID 3 TCP connection to port 21 from the specifically named executable observed in the lab. This is sample-scoped, not a generic Agent Tesla rule.
+author: AgentTesla-01 lab analysis
+date: '2026-11-03'
+references:
+  - https://any.run/cybersecurity-blog/agent-tesla-latam-enterprise/
+logsource:
+  product: windows
+  service: sysmon
+detection:
+  selection:
+    EventID: 3
+    Image|endswith: \8a8ce129b3b8e9d9cd27fd9cb793f0e0868b67579d595f076e2ffc81d3dafce2.exe
+    DestinationPort: 21
+    Protocol: tcp
+  condition: selection
+fields:
+  - Image
+  - DestinationIp
+  - DestinationPort
+  - Protocol
+  - ProcessGuid
+  - ProcessId
+  - UtcTime
+falsepositives:
+  - Reused filename or intentional malware-lab testing.
+level: high
+tags:
+  - attack.t1071.002

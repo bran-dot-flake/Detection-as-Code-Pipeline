@@ -1,0 +1,1 @@
+{"EventID":3,"EventRecordID":"977060","UtcTime":"2026-11-03 14:16:06.773","ProcessGuid":"{9d4bd4fd-ecd4-6ae9-590c-000000000d00}","ProcessId":"2628","Image":"$CASE\\sample\\8a8ce129b3b8e9d9cd27fd9cb793f0e0868b67579d595f076e2ffc81d3dafce2.exe","Protocol":"tcp","Initiated":"True","SourceIp":"10.10.10.20","SourcePort":60721,"DestinationIp":"10.10.10.10","DestinationPort":80}

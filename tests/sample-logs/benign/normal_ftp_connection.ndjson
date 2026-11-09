@@ -1,0 +1,2 @@
+{"EventID":3,"Image":"C:\\Windows\\System32\\ftp.exe","Protocol":"tcp","Initiated":"True","SourceIp":"10.10.10.20","SourcePort":55001,"DestinationIp":"10.10.10.30","DestinationPort":21,"Computer":"LAB-WIN01"}
+{"EventID":3,"Image":"C:\\Program Files\\WinSCP\\WinSCP.exe","Protocol":"tcp","Initiated":"True","SourceIp":"10.10.10.20","SourcePort":55002,"DestinationIp":"10.10.10.30","DestinationPort":21,"Computer":"LAB-WIN01"}
