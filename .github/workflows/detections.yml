@@ -109,7 +109,7 @@ jobs:
         env:
           SPLUNK_MANAGEMENT_URL: ${{ secrets.SPLUNK_MANAGEMENT_URL }}
           SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
-          SPLUNK_INDEX: ${{ vars.SPLUNK_INDEX }}
+          SPLUNK_INDEX: ${{ vars.SPLUNK_TEST_INDEX }}
           SPLUNK_VERIFY_TLS: ${{ vars.SPLUNK_VERIFY_TLS }}
         run: python scripts/test_splunk_integration.py
       - name: Deploy approved saved searches via Splunk REST API
