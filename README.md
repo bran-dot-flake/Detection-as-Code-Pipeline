@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/detection-as-code-icon.png" width="280" alt="Detection-as-Code project icon">
+  <img src="images/detection-as-code-icon.svg" width="280" alt="Detection-as-Code project icon">
 </p>
 
 <h1 align="center">Detection-as-Code Pipeline</h1>
