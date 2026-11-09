@@ -20,7 +20,7 @@ permissions:
 jobs:
   rollback:
     name: Restore previous Splunk detection state
-    if: inputs.confirm == true && vars.ENABLE_SPLUNK_DEPLOY == 'true'
+    if: github.ref == 'refs/heads/main' && inputs.confirm == true && vars.ENABLE_SPLUNK_DEPLOY == 'true'
     runs-on: [self-hosted, linux, splunk-lab]
     environment: splunk-lab
     steps:
