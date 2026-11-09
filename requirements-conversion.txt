@@ -1,0 +1,2 @@
+sigma-cli==4.0.0
+pysigma-backend-splunk==2.1.0

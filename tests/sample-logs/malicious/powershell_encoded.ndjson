@@ -1,0 +1,3 @@
+{"EventID": 1, "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -NoProfile -enc SQBFAFgA", "Computer": "LAB-WIN01", "Source": "Microsoft-Windows-Sysmon/Operational"}
+{"EventID": 1, "Image": "C:\\Program Files\\PowerShell\\7\\pwsh.exe", "CommandLine": "pwsh.exe -EncodedCommand SQBFAFgA", "Computer": "LAB-WIN01", "Source": "Microsoft-Windows-Sysmon/Operational"}
+{"EventID": 1, "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -ENC SQBFAFgA", "Computer": "LAB-WIN02", "Source": "Microsoft-Windows-Sysmon/Operational"}

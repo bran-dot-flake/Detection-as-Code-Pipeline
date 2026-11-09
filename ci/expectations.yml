@@ -1,0 +1,11 @@
+# RSigma compares each rule's observed fires to these per-corpus counts.
+# If a rule fires on benign events, the CI job must fail.
+defaults:
+  unexpected_detections: fail
+expectations:
+  - rule: 91bf5505-b9b7-47e9-87c0-23945fc57865
+    corpus: malicious/powershell_encoded.ndjson
+    exactly: 3
+  - rule: 91bf5505-b9b7-47e9-87c0-23945fc57865
+    corpus: benign/normal_admin.ndjson
+    exactly: 0

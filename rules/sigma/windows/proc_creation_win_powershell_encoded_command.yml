@@ -1,0 +1,29 @@
+title: PowerShell Encoded Command - Demonstration
+id: 91bf5505-b9b7-47e9-87c0-23945fc57865
+status: experimental
+description: >
+  Illustrative detection for PowerShell using the -enc or -EncodedCommand
+  parameter. Synthetic lab data; not an evidence-backed malware-specific rule.
+author: Detection-as-Code Lab
+date: 2026-11-09
+references:
+  - https://attack.mitre.org/techniques/T1059/001/
+tags:
+  - attack.execution
+  - attack.t1059.001
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_image:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+  selection_encoded:
+    CommandLine|contains:
+      - ' -enc '
+      - ' -encodedcommand '
+  condition: selection_image and selection_encoded
+falsepositives:
+  - Legitimate administrators or automation using encoded PowerShell commands.
+level: medium

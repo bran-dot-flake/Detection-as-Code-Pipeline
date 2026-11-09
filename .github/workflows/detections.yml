@@ -1,0 +1,110 @@
+name: Detection as Code
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: detections-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RSIGMA_VERSION: '0.25.0'
+
+jobs:
+  validate-and-backtest:
+    name: Validate and test Sigma rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python test dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Validate test fixtures and expectations structure
+        run: python -m pytest -q tests/test_fixtures.py
+      - name: Install pinned RSigma release
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error -o /tmp/rsigma.tar.gz \
+            "https://github.com/timescale/rsigma/releases/download/v${RSIGMA_VERSION}/rsigma-x86_64-unknown-linux-gnu.tar.gz"
+          tar -xzf /tmp/rsigma.tar.gz -C /tmp
+          sudo install -m 0755 /tmp/rsigma /usr/local/bin/rsigma
+          rsigma --version
+      - name: Check Sigma rules are valid
+        run: rsigma rule validate rules/sigma/
+      - name: Test rule matches against good and bad events
+        run: |
+          rsigma rule backtest \
+            --rules rules/sigma/ \
+            --corpus tests/sample-logs/ \
+            --expectations ci/expectations.yml \
+            --unexpected fail \
+            --junit backtest.xml
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detection-test-results
+          path: backtest.xml
+          if-no-files-found: ignore
+
+  convert-to-splunk:
+    name: Compile rules to Splunk SPL
+    needs: [validate-and-backtest]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned Sigma CLI and Splunk backend
+        run: |
+          python -m pip install -r requirements.txt -r requirements-conversion.txt
+          sigma list targets
+      - name: Convert all rules with the Sysmon processing pipeline
+        run: python scripts/build_splunk.py
+      - name: Publish passing SPL build
+        uses: actions/upload-artifact@v4
+        with:
+          name: splunk-detections-${{ github.sha }}
+          path: dist/splunk/
+          if-no-files-found: error
+
+  deploy-to-splunk-lab:
+    # Only executes when explicitly enabled, on trusted main-branch pushes.
+    # Do not expose port 8089 or self-hosted runners to untrusted PR code.
+    name: Deploy to private Splunk lab (optional)
+    needs: [validate-and-backtest, convert-to-splunk]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_SPLUNK_DEPLOY == 'true'
+    runs-on: [self-hosted, linux, splunk-lab]
+    environment: splunk-lab
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install deployment dependencies
+        run: python -m pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: splunk-detections-${{ github.sha }}
+          path: dist/splunk
+      - name: Deploy approved saved searches via Splunk REST API
+        env:
+          SPLUNK_MANAGEMENT_URL: ${{ secrets.SPLUNK_MANAGEMENT_URL }}
+          SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
+          SPLUNK_APP: search
+        run: python scripts/deploy_splunk.py --live
