@@ -105,9 +105,18 @@ jobs:
         with:
           name: splunk-detections-${{ github.sha }}
           path: dist/splunk
+      - name: Verify compiled SPL against live Splunk
+        env:
+          SPLUNK_MANAGEMENT_URL: ${{ secrets.SPLUNK_MANAGEMENT_URL }}
+          SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
+          SPLUNK_INDEX: ${{ vars.SPLUNK_INDEX }}
+          SPLUNK_VERIFY_TLS: ${{ vars.SPLUNK_VERIFY_TLS }}
+        run: python scripts/test_splunk_integration.py
       - name: Deploy approved saved searches via Splunk REST API
         env:
           SPLUNK_MANAGEMENT_URL: ${{ secrets.SPLUNK_MANAGEMENT_URL }}
           SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
+          SPLUNK_INDEX: ${{ vars.SPLUNK_INDEX }}
+          SPLUNK_VERIFY_TLS: ${{ vars.SPLUNK_VERIFY_TLS }}
           SPLUNK_APP: search
         run: python scripts/deploy_splunk.py --live
