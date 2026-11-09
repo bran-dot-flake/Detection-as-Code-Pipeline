@@ -1,14 +1,26 @@
 # Complete rule x corpus expectation matrix.
-# Real AgentTesla-01 events are adapted from the sanitized Sysmon evidence set.
-# Domains defanged in the source evidence are normalized here to the operational
-# values required by the Sigma matchers. Benign baseline events are synthetic.
+# Positive rows from the AgentTesla-01 and Threat Hunting with Splunk cases are
+# adapted from the published investigation evidence. Benign baselines are
+# synthetic regression fixtures. Password material is redacted.
 defaults:
   unexpected_detections: fail
 expectations:
   # AgentTesla-01 Self-Spawn
   - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
-    corpus: malicious/agenttesla_self_spawn.ndjson
-    exactly: 2
+    corpus: benign/normal_dns.ndjson
+    exactly: 0
+  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+    corpus: benign/normal_ftp_connection.ndjson
+    exactly: 0
+  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+    corpus: benign/normal_parent_child.ndjson
+    exactly: 0
+  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+    corpus: benign/threat_hunt_network_baseline.ndjson
+    exactly: 0
+  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+    corpus: benign/threat_hunt_process_baseline.ndjson
+    exactly: 0
   - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
     corpus: malicious/agenttesla_ftp_connection.ndjson
     exactly: 0
@@ -19,24 +31,36 @@ expectations:
     corpus: malicious/agenttesla_ip_api_dns.ndjson
     exactly: 0
   - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
-    corpus: nonmatching/agenttesla_initial_launch.ndjson
+    corpus: malicious/agenttesla_self_spawn.ndjson
+    exactly: 2
+  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+    corpus: malicious/threat_hunt_c2_connection.ndjson
+    exactly: 0
+  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+    corpus: malicious/threat_hunt_process_activity.ndjson
     exactly: 0
   - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
     corpus: nonmatching/agenttesla_http_connection.ndjson
     exactly: 0
   - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
-    corpus: benign/normal_parent_child.ndjson
-    exactly: 0
-  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
-    corpus: benign/normal_ftp_connection.ndjson
-    exactly: 0
-  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
-    corpus: benign/normal_dns.ndjson
+    corpus: nonmatching/agenttesla_initial_launch.ndjson
     exactly: 0
 
   # AgentTesla-01 FTP Connection
   - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
-    corpus: malicious/agenttesla_self_spawn.ndjson
+    corpus: benign/normal_dns.ndjson
+    exactly: 0
+  - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
+    corpus: benign/normal_ftp_connection.ndjson
+    exactly: 0
+  - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
+    corpus: benign/normal_parent_child.ndjson
+    exactly: 0
+  - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
+    corpus: benign/threat_hunt_network_baseline.ndjson
+    exactly: 0
+  - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
+    corpus: benign/threat_hunt_process_baseline.ndjson
     exactly: 0
   - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
     corpus: malicious/agenttesla_ftp_connection.ndjson
@@ -48,24 +72,36 @@ expectations:
     corpus: malicious/agenttesla_ip_api_dns.ndjson
     exactly: 0
   - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
-    corpus: nonmatching/agenttesla_initial_launch.ndjson
+    corpus: malicious/agenttesla_self_spawn.ndjson
+    exactly: 0
+  - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
+    corpus: malicious/threat_hunt_c2_connection.ndjson
+    exactly: 0
+  - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
+    corpus: malicious/threat_hunt_process_activity.ndjson
     exactly: 0
   - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
     corpus: nonmatching/agenttesla_http_connection.ndjson
     exactly: 0
   - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
-    corpus: benign/normal_parent_child.ndjson
-    exactly: 0
-  - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
-    corpus: benign/normal_ftp_connection.ndjson
-    exactly: 0
-  - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
-    corpus: benign/normal_dns.ndjson
+    corpus: nonmatching/agenttesla_initial_launch.ndjson
     exactly: 0
 
   # AgentTesla-01 FTP Domain Lookup
   - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
-    corpus: malicious/agenttesla_self_spawn.ndjson
+    corpus: benign/normal_dns.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: benign/normal_ftp_connection.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: benign/normal_parent_child.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: benign/threat_hunt_network_baseline.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: benign/threat_hunt_process_baseline.ndjson
     exactly: 0
   - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
     corpus: malicious/agenttesla_ftp_connection.ndjson
@@ -77,24 +113,36 @@ expectations:
     corpus: malicious/agenttesla_ip_api_dns.ndjson
     exactly: 0
   - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
-    corpus: nonmatching/agenttesla_initial_launch.ndjson
+    corpus: malicious/agenttesla_self_spawn.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: malicious/threat_hunt_c2_connection.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: malicious/threat_hunt_process_activity.ndjson
     exactly: 0
   - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
     corpus: nonmatching/agenttesla_http_connection.ndjson
     exactly: 0
   - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
-    corpus: benign/normal_parent_child.ndjson
-    exactly: 0
-  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
-    corpus: benign/normal_ftp_connection.ndjson
-    exactly: 0
-  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
-    corpus: benign/normal_dns.ndjson
+    corpus: nonmatching/agenttesla_initial_launch.ndjson
     exactly: 0
 
   # AgentTesla-01 IP-API Lookup
   - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
-    corpus: malicious/agenttesla_self_spawn.ndjson
+    corpus: benign/normal_dns.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: benign/normal_ftp_connection.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: benign/normal_parent_child.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: benign/threat_hunt_network_baseline.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: benign/threat_hunt_process_baseline.ndjson
     exactly: 0
   - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
     corpus: malicious/agenttesla_ftp_connection.ndjson
@@ -106,18 +154,223 @@ expectations:
     corpus: malicious/agenttesla_ip_api_dns.ndjson
     exactly: 1
   - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
-    corpus: nonmatching/agenttesla_initial_launch.ndjson
+    corpus: malicious/agenttesla_self_spawn.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: malicious/threat_hunt_c2_connection.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: malicious/threat_hunt_process_activity.ndjson
     exactly: 0
   - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
     corpus: nonmatching/agenttesla_http_connection.ndjson
     exactly: 0
   - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
-    corpus: benign/normal_parent_child.ndjson
+    corpus: nonmatching/agenttesla_initial_launch.ndjson
     exactly: 0
-  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+
+  # Executable Masquerading as PDF via Double Extension
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+    corpus: benign/normal_dns.ndjson
+    exactly: 0
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
     corpus: benign/normal_ftp_connection.ndjson
     exactly: 0
-  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+    corpus: benign/normal_parent_child.ndjson
+    exactly: 0
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+    corpus: benign/threat_hunt_network_baseline.ndjson
+    exactly: 0
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+    corpus: benign/threat_hunt_process_baseline.ndjson
+    exactly: 0
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+    corpus: malicious/agenttesla_ftp_connection.ndjson
+    exactly: 0
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+    corpus: malicious/agenttesla_ftp_dns.ndjson
+    exactly: 0
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+    corpus: malicious/agenttesla_ip_api_dns.ndjson
+    exactly: 0
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+    corpus: malicious/agenttesla_self_spawn.ndjson
+    exactly: 0
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+    corpus: malicious/threat_hunt_c2_connection.ndjson
+    exactly: 0
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+    corpus: malicious/threat_hunt_process_activity.ndjson
+    exactly: 1
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+    corpus: nonmatching/agenttesla_http_connection.ndjson
+    exactly: 0
+  - rule: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+    corpus: nonmatching/agenttesla_initial_launch.ndjson
+    exactly: 0
+
+  # Executable in Downloads Spawning Windows Command Shell
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
     corpus: benign/normal_dns.ndjson
+    exactly: 0
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
+    corpus: benign/normal_ftp_connection.ndjson
+    exactly: 0
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
+    corpus: benign/normal_parent_child.ndjson
+    exactly: 0
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
+    corpus: benign/threat_hunt_network_baseline.ndjson
+    exactly: 0
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
+    corpus: benign/threat_hunt_process_baseline.ndjson
+    exactly: 0
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
+    corpus: malicious/agenttesla_ftp_connection.ndjson
+    exactly: 0
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
+    corpus: malicious/agenttesla_ftp_dns.ndjson
+    exactly: 0
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
+    corpus: malicious/agenttesla_ip_api_dns.ndjson
+    exactly: 0
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
+    corpus: malicious/agenttesla_self_spawn.ndjson
+    exactly: 0
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
+    corpus: malicious/threat_hunt_c2_connection.ndjson
+    exactly: 0
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
+    corpus: malicious/threat_hunt_process_activity.ndjson
+    exactly: 1
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
+    corpus: nonmatching/agenttesla_http_connection.ndjson
+    exactly: 0
+  - rule: f0cfac8b-f900-4db1-9774-22ff45aa913e
+    corpus: nonmatching/agenttesla_initial_launch.ndjson
+    exactly: 0
+
+  # Local Account Creation via Net Utility
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: benign/normal_dns.ndjson
+    exactly: 0
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: benign/normal_ftp_connection.ndjson
+    exactly: 0
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: benign/normal_parent_child.ndjson
+    exactly: 0
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: benign/threat_hunt_network_baseline.ndjson
+    exactly: 0
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: benign/threat_hunt_process_baseline.ndjson
+    exactly: 0
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: malicious/agenttesla_ftp_connection.ndjson
+    exactly: 0
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: malicious/agenttesla_ftp_dns.ndjson
+    exactly: 0
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: malicious/agenttesla_ip_api_dns.ndjson
+    exactly: 0
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: malicious/agenttesla_self_spawn.ndjson
+    exactly: 0
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: malicious/threat_hunt_c2_connection.ndjson
+    exactly: 0
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: malicious/threat_hunt_process_activity.ndjson
+    exactly: 1
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: nonmatching/agenttesla_http_connection.ndjson
+    exactly: 0
+  - rule: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+    corpus: nonmatching/agenttesla_initial_launch.ndjson
+    exactly: 0
+
+  # PowerShell Execution Policy Bypass Argument
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: benign/normal_dns.ndjson
+    exactly: 0
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: benign/normal_ftp_connection.ndjson
+    exactly: 0
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: benign/normal_parent_child.ndjson
+    exactly: 0
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: benign/threat_hunt_network_baseline.ndjson
+    exactly: 0
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: benign/threat_hunt_process_baseline.ndjson
+    exactly: 0
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: malicious/agenttesla_ftp_connection.ndjson
+    exactly: 0
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: malicious/agenttesla_ftp_dns.ndjson
+    exactly: 0
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: malicious/agenttesla_ip_api_dns.ndjson
+    exactly: 0
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: malicious/agenttesla_self_spawn.ndjson
+    exactly: 0
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: malicious/threat_hunt_c2_connection.ndjson
+    exactly: 0
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: malicious/threat_hunt_process_activity.ndjson
+    exactly: 1
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: nonmatching/agenttesla_http_connection.ndjson
+    exactly: 0
+  - rule: d9352d96-0c81-46a4-a9c1-32e238d6e08b
+    corpus: nonmatching/agenttesla_initial_launch.ndjson
+    exactly: 0
+
+  # Threat Hunt Application Form C2 Connection
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: benign/normal_dns.ndjson
+    exactly: 0
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: benign/normal_ftp_connection.ndjson
+    exactly: 0
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: benign/normal_parent_child.ndjson
+    exactly: 0
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: benign/threat_hunt_network_baseline.ndjson
+    exactly: 0
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: benign/threat_hunt_process_baseline.ndjson
+    exactly: 0
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: malicious/agenttesla_ftp_connection.ndjson
+    exactly: 0
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: malicious/agenttesla_ftp_dns.ndjson
+    exactly: 0
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: malicious/agenttesla_ip_api_dns.ndjson
+    exactly: 0
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: malicious/agenttesla_self_spawn.ndjson
+    exactly: 0
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: malicious/threat_hunt_c2_connection.ndjson
+    exactly: 1
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: malicious/threat_hunt_process_activity.ndjson
+    exactly: 0
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: nonmatching/agenttesla_http_connection.ndjson
+    exactly: 0
+  - rule: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+    corpus: nonmatching/agenttesla_initial_launch.ndjson
     exactly: 0
 

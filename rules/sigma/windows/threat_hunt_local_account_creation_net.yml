@@ -1,0 +1,32 @@
+title: Local Account Creation via Net Utility
+id: 35f1f8c5-a2b1-4edc-9e87-476e366e1f53
+status: experimental
+description: Detects net.exe or net1.exe being used with the user and /add arguments to request creation of a local account.
+author: Detection-as-Code Lab
+date: '2026-11-09'
+references:
+  - https://github.com/bran-dot-flake/Threat-Hunting-with-Splunk-Hack-The-Box-Writeup
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_image:
+    Image|endswith:
+      - '\net.exe'
+      - '\net1.exe'
+  selection_user:
+    CommandLine|contains: ' user '
+  selection_add:
+    CommandLine|contains: ' /add'
+  condition: selection_image and selection_user and selection_add
+fields:
+  - Image
+  - CommandLine
+  - ParentImage
+  - User
+falsepositives:
+  - Legitimate administrator-driven local account provisioning.
+level: medium
+tags:
+  - attack.persistence
+  - attack.t1136.001

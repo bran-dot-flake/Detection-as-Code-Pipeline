@@ -1,26 +1,32 @@
 # Detection-as-Code Pipeline
 
 A Detection-as-Code CI/CD lab that treats Sigma detections like software: rules
-are versioned in Git, validated against investigation-backed positive and negative
-evidence, compiled to Splunk SPL, verified against a live Splunk instance, and
-deployed as scheduled saved-search alerts only after the promotion controls pass.
+are versioned in Git, validated against positive and negative evidence, compiled
+to Splunk SPL, verified against a live Splunk instance, and deployed as scheduled
+saved-search alerts only after protected promotion controls pass.
 
-The current detection set is derived from my Agent Tesla malware analysis:
+The current detection set draws from two investigation sources:
 
-<https://github.com/bran-dot-flake/Agent-Tesla-Malware-Analysis-and-Detection-Engineering>
+- [Agent Tesla Malware Analysis and Detection Engineering](https://github.com/bran-dot-flake/Agent-Tesla-Malware-Analysis-and-Detection-Engineering)
+- [Threat Hunting with Splunk - Hack The Box Writeup](https://github.com/bran-dot-flake/Threat-Hunting-with-Splunk-Hack-The-Box-Writeup)
 
 ## Current detections
 
-| Rule | Sigma ID | Positive evidence | Expected |
+| Rule | Type | Positive evidence | Expected |
 |---|---|---|---:|
-| AgentTesla-01 Self-Spawn | `c8859ff7-c5c3-4975-9ebe-7b35d6a047f2` | Sysmon records `976934`, `976935` | 2 |
-| AgentTesla-01 FTP Connection | `e308373e-277b-47f7-aa9e-2dbcbc61478b` | Sysmon record `977067` | 1 |
-| AgentTesla-01 FTP Domain Lookup | `573a63f3-f985-4a43-be5e-dd7034444f44` | Sysmon record `977063` | 1 |
-| AgentTesla-01 IP-API Lookup | `71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce` | Sysmon record `977057` | 1 |
+| AgentTesla-01 Self-Spawn | Case-scoped | Sysmon records `976934`, `976935` | 2 |
+| AgentTesla-01 FTP Connection | Case-scoped | Sysmon record `977067` | 1 |
+| AgentTesla-01 FTP Domain Lookup | IOC | Sysmon record `977063` | 1 |
+| AgentTesla-01 IP-API Lookup | Case-scoped | Sysmon record `977057` | 1 |
+| Executable Masquerading as PDF via Double Extension | Behavioral | Process at `09:28:07.170` | 1 |
+| Executable in Downloads Spawning Windows Command Shell | Behavioral | Process at `09:28:55.870` | 1 |
+| Local Account Creation via Net Utility | Behavioral | Process at `09:31:57.220` | 1 |
+| PowerShell Execution Policy Bypass Argument | Behavioral | Process at `09:42:08.640` | 1 |
+| Threat Hunt Application Form C2 Connection | Case-scoped | Network event at `09:28:09.378` | 1 |
 
-The source evidence repository stores domains defanged. The CI fixtures normalize
-those domain values back to their operational form so the Sigma matchers can be
-tested while retaining the source event record IDs and surrounding fields.
+The Agent Tesla source repository stores domains defanged; CI fixtures normalize
+those values back to operational form for matching. The threat-hunt fixtures retain
+the published event times and observed fields. Password material is redacted.
 
 ## Pipeline
 
@@ -58,80 +64,121 @@ live integration passes
 create/update scheduled alerts targeting index=sysmon
 ```
 
-The private self-hosted runner never executes pull-request code. Pull requests use
-GitHub-hosted runners for validation and compilation; live Splunk access occurs
-only after a trusted revision reaches `main`.
+Feature branches are tested by pull-request workflows only. Push workflows run on
+`main`, which prevents duplicate branch CI runs and keeps the private self-hosted
+runner entirely out of pull-request execution.
 
-## Evidence-backed test cases
+## Evidence-backed detection families
 
-### Self-Spawn
+### Agent Tesla
 
-The rule requires Sysmon Event ID 1 with both `Image` and `ParentImage`
-ending in the analyzed sample filename.
+The four Agent Tesla rules are tied directly to the sanitized Sysmon evidence set:
 
-- Records `976934` and `976935`: sample -> sample. Must match.
-- Record `976880`: Explorer -> sample. Must not match.
-- Synthetic parent/child baseline events: must not match.
+- Self-spawn: records `976934` and `976935`
+- FTP connection: record `977067`
+- FTP-domain lookup: record `977063`
+- IP-API lookup: record `977057`
 
-### FTP Connection
+Real near-misses include Explorer launching the sample and the malware connecting
+to TCP/80 rather than FTP. Synthetic benign fixtures cover ordinary parent/child,
+FTP, and DNS behavior.
 
-The rule requires Sysmon Event ID 3, the analyzed sample filename, TCP, and
-destination port 21.
+### Threat Hunting with Splunk
 
-- Record `977067`: sample -> TCP/21. Must match.
-- Record `977060`: same process -> TCP/80. Must not match.
-- Synthetic normal FTP clients -> TCP/21: must not match because the image does
-  not match the analyzed sample.
+#### PDF double-extension execution
 
-### FTP Domain Lookup
+The investigation observed:
 
-The rule requires Sysmon Event ID 22 and the recovered FTP destination
-`ftp.ritubohara.com`.
+```text
+C:\Users\LetsDefend\Downloads\application_form.pdf.exe
+```
 
-- Record `977063`: DNS lookup of the recovered FTP destination. Must match.
-- Record `977057`: DNS lookup of `ip-api.com`. Must not match.
-- Synthetic normal DNS activity: must not match.
+The behavioral rule detects execution of an image ending in `.pdf.exe`.
+The benign corpus includes a real PDF opened by Acrobat and an ordinary installer
+from Downloads.
 
-This is intentionally a domain-specific IOC rule. Legitimate resolution of the
-same domain remains a documented false-positive possibility.
+#### Downloads executable spawning cmd.exe
 
-### IP-API Lookup
+At `09:28:55.870`, the masquerading executable spawned:
 
-The rule requires Sysmon Event ID 22, `ip-api.com`, and the analyzed executable
-name.
+```text
+C:\Windows\System32\cmd.exe
+ParentImage = C:\Users\LetsDefend\Downloads\application_form.pdf.exe
+```
 
-- Record `977057`: sample -> DNS lookup of `ip-api.com`. Must match.
-- Record `977063`: sample -> FTP-domain lookup. Must not match.
-- Synthetic Chrome -> `ip-api.com`: must not match, proving that the process
-  image constraint is required.
+The rule requires `cmd.exe` plus a parent image located under a Downloads
+directory. The benign corpus includes Explorer launching cmd.exe and a normal
+installer executing from Downloads without spawning a shell.
 
-The packet capture separately recorded
-`GET /line/?fields=hosting` to `ip-api.com`; that HTTP path is supporting
-network evidence and is not claimed to be present in the Sysmon DNS event.
+#### Local account creation via Net utility
+
+The investigation recorded:
+
+```text
+C:\Windows\system32\net1 user jumpadmin <REDACTED> /add
+```
+
+The detection requires `net.exe` or `net1.exe`, a `user` argument, and
+`/add`. The benign corpus includes `net1 user` enumeration without account
+creation.
+
+The event proves the command was issued; it does not claim the account creation
+succeeded or that the account received administrator membership.
+
+#### PowerShell execution-policy Bypass
+
+The investigation observed:
+
+```text
+powershell.exe -ep bypass
+```
+
+The rule covers the observed `-ep bypass` form and equivalent aliases used in
+the hunt query. A benign baseline uses `-ExecutionPolicy RemoteSigned`.
+
+Execution policy is not treated as a security boundary; this analytic is intended
+as suspicious execution context, not proof of defense evasion by itself.
+
+#### Case-scoped C2 connection
+
+The investigation observed `application_form.pdf.exe` connecting to
+`13.232.55.12` on destination port `30`.
+
+The C2 rule intentionally requires all three observed indicators:
+
+```text
+image = application_form.pdf.exe
+destination = 13.232.55.12
+port = 30
+```
+
+The benign/near-miss corpus separately changes the process, destination, and port
+to prove the full conjunction is required. This is an investigation-specific
+analytic rather than a generic “port 30 is malicious” rule.
 
 ## Complete expectation matrix
 
-`ci/expectations.yml` defines an expected match count for every rule/corpus pair,
-and `tests/test_fixtures.py` fails CI if any pair is missing or stale.
+`ci/expectations.yml` defines an expected count for every rule/corpus pair.
+`tests/test_fixtures.py` fails CI if any pair is missing or stale.
 
 Current coverage:
 
 ```text
-4 Sigma rules
+9 Sigma rules
 x
-9 corpus files
+13 corpus files
 =
-36 explicit expectations
+117 explicit expectations
 ```
 
-This makes new test data regression-sensitive across the entire detection set,
-not only the rule it was originally added for.
+This means a fixture added for one investigation is automatically regression-tested
+against every other detection.
 
 ## Regression demonstration
 
-A temporary branch intentionally removed the Self-Spawn rule's `ParentImage`
-condition. The rule remained syntactically valid and still detected the two
-positive events, but it also detected record `976880` (Explorer -> sample).
+A temporary branch intentionally removed the Agent Tesla Self-Spawn rule's
+`ParentImage` condition. The rule remained syntactically valid and still detected
+the true positives, but it also detected the Explorer -> sample near-miss.
 
 ```text
 Expected near-miss matches: 0
@@ -146,7 +193,7 @@ Failed demonstration run:
 
 <https://github.com/bran-dot-flake/Detection-as-Code-Pipeline/actions/runs/42632208052>
 
-This demonstrates why the pipeline tests detection behavior rather than treating
+This demonstrates why the pipeline tests detection behavior instead of treating
 syntax validation as sufficient.
 
 ## Pull-request and promotion controls
@@ -160,19 +207,21 @@ The `main` branch is protected by an active GitHub ruleset:
 - branch deletion and force pushes are blocked.
 
 The workflow independently verifies that an automatic push-to-`main` deployment
-is associated with a merged pull request. Manual workflow dispatch is retained for
-an explicit redeploy of the current trusted `main` revision.
+is associated with a merged pull request. Manual workflow dispatch remains
+available to redeploy the current trusted `main` revision.
+
+The private Splunk runner is not used for pull-request code.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the development flow.
 
 ## Live Splunk integration
 
-The live test uses a dedicated `dac_test` index so fixture events cannot trigger
-the real scheduled detections in `index=sysmon`.
+The live test uses a dedicated `dac_test` index so test fixtures cannot trigger
+the scheduled detections in `index=sysmon`.
 
-The script:
+The integration script:
 
-1. posts the NDJSON corpus through Splunk's management REST API;
+1. posts the NDJSON corpus through the Splunk management REST API;
 2. tags each run with a unique `DaCTestRunId`;
 3. maps fixture `EventID` to Splunk `EventCode`;
 4. runs each generated SPL search through the live Splunk search API;
@@ -197,6 +246,7 @@ Current lab behavior:
 
 ```text
 target index:       sysmon
+test index:         dac_test
 schedule:           every 5 minutes
 search window:      previous 5 minutes
 trigger condition:  result count > 0
@@ -204,12 +254,10 @@ deployment:         create or update by saved-search name
 ```
 
 The GitHub environment stores `SPLUNK_MANAGEMENT_URL` and `SPLUNK_TOKEN` as
-secrets. Repository variables select `sysmon`, `dac_test`, TLS behavior for the
-isolated lab, and whether deployment is enabled.
+secrets. Repository variables select the production/test indexes, lab TLS behavior,
+and whether deployment is enabled.
 
 ## Run locally
-
-Python:
 
 ```bash
 python3 -m venv .venv
@@ -247,9 +295,12 @@ isolated lab uses Splunk's default self-signed certificate.
 
 ## Next milestones
 
-The core CI/CD pipeline is complete. Useful future extensions include detection
-health telemetry, rollback/version metadata, additional malware cases, and
-cross-platform compilation targets such as Sentinel KQL.
+The core CI/CD path is complete. Useful extensions now include:
+
+- detection-health and scheduler telemetry;
+- rollback/version metadata for deployed saved searches;
+- additional investigation-backed rule families;
+- a second compilation/deployment target such as Microsoft Sentinel KQL.
 
 ## References
 

@@ -1,0 +1,5 @@
+{"EventID":1,"Image":"C:\\Program Files\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe","CommandLine":"\"C:\\Program Files\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe\" C:\\Users\\Analyst\\Downloads\\report.pdf","ParentImage":"C:\\Windows\\explorer.exe"}
+{"EventID":1,"Image":"C:\\Windows\\System32\\cmd.exe","CommandLine":"cmd.exe /c echo hello","ParentImage":"C:\\Windows\\explorer.exe"}
+{"EventID":1,"Image":"C:\\Windows\\System32\\net1.exe","CommandLine":"C:\\Windows\\System32\\net1.exe user","ParentImage":"C:\\Windows\\System32\\cmd.exe"}
+{"EventID":1,"Image":"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe","CommandLine":"powershell.exe -ExecutionPolicy RemoteSigned -File C:\\Scripts\\maintenance.ps1","ParentImage":"C:\\Windows\\System32\\cmd.exe"}
+{"EventID":1,"Image":"C:\\Users\\Analyst\\Downloads\\setup.exe","CommandLine":"C:\\Users\\Analyst\\Downloads\\setup.exe /quiet","ParentImage":"C:\\Windows\\explorer.exe"}

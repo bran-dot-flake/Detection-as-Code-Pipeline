@@ -1,0 +1,26 @@
+title: Executable Masquerading as PDF via Double Extension
+id: d0ce7d56-0db5-4c45-89bd-2193f035c75f
+status: experimental
+description: Detects execution of a Windows executable whose filename ends in .pdf.exe, as observed in the Threat Hunting with Splunk investigation.
+author: Detection-as-Code Lab
+date: '2026-11-09'
+references:
+  - https://github.com/bran-dot-flake/Threat-Hunting-with-Splunk-Hack-The-Box-Writeup
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: '.pdf.exe'
+  condition: selection
+fields:
+  - Image
+  - CommandLine
+  - ParentImage
+  - User
+falsepositives:
+  - Legitimate software or test artifacts intentionally using a .pdf.exe filename.
+level: medium
+tags:
+  - attack.defense-evasion
+  - attack.t1036.007
