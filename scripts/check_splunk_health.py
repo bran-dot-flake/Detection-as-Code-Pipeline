@@ -159,6 +159,63 @@ def get_history(
     return response.json().get("entry", []), None
 
 
+def get_all_managed(
+    session: requests.Session,
+    base: str,
+    app: str,
+) -> dict[str, dict]:
+    namespace = (
+        f"{base}/servicesNS/nobody/{quote(app, safe='')}/saved/searches"
+    )
+    response = session.get(
+        namespace,
+        params={"output_mode": "json", "count": 0},
+        timeout=30,
+    )
+    response.raise_for_status()
+    return {
+        str(entry["name"]): entry
+        for entry in response.json().get("entry", [])
+        if str(entry.get("name", "")).startswith("DaC - ")
+    }
+
+
+def enabled_orphan_results(
+    live_managed: dict[str, dict],
+    expected_names: set[str],
+) -> list[dict]:
+    results: list[dict] = []
+    for name in sorted(set(live_managed) - expected_names):
+        content = live_managed[name].get("content", {})
+        if boolish(content.get("disabled")):
+            continue
+        results.append(
+            {
+                "id": "-",
+                "title": name.removeprefix("DaC - "),
+                "name": name,
+                "source": "splunk-only",
+                "status": "ERROR",
+                "errors": [
+                    "managed saved search is enabled in Splunk but absent from Git"
+                ],
+                "warnings": [],
+                "scheduled": boolish(content.get("is_scheduled")),
+                "enabled": True,
+                "cron": str(content.get("cron_schedule", "-")),
+                "next_run": str(content.get("next_scheduled_time", "-")),
+                "last_run": "-",
+                "last_state": "ORPHANED",
+                "result_count": "-",
+                "deployed_commit": parse_metadata(
+                    str(content.get("description", ""))
+                ).get("commit", "-"),
+                "query_drift": "unknown",
+            }
+        )
+    return results
+
+
 def assess_rule(
     session: requests.Session,
     base: str,
@@ -388,10 +445,15 @@ def main() -> int:
     )
     server.raise_for_status()
 
+    expected_rules = load_expected_rules()
     results = [
         assess_rule(session, base, app, expected_commit, rule)
-        for rule in load_expected_rules()
+        for rule in expected_rules
     ]
+
+    expected_names = {rule["name"] for rule in expected_rules}
+    live_managed = get_all_managed(session, base, app)
+    results.extend(enabled_orphan_results(live_managed, expected_names))
     session.close()
 
     generated_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()

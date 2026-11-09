@@ -68,8 +68,8 @@ def load_snapshot(path: Path) -> dict:
     if data.get("schema_version") != 1:
         raise SystemExit("Unsupported rollback snapshot schema")
     searches = data.get("searches")
-    if not isinstance(searches, list) or not searches:
-        raise SystemExit("Rollback snapshot contains no saved searches")
+    if not isinstance(searches, list):
+        raise SystemExit("Rollback snapshot searches must be a list")
     for item in searches:
         name = str(item.get("name", ""))
         if not name.startswith(MANAGED_PREFIX):
@@ -268,6 +268,8 @@ def main() -> int:
         f"run {snapshot.get('source_run_id')} / commit "
         f"{snapshot.get('repository_commit')}"
     )
+    if not expected:
+        print("Snapshot represents an empty managed state")
 
     if not args.live:
         for item in expected:

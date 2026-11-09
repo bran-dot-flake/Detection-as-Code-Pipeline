@@ -93,9 +93,11 @@ def main() -> int:
     entries = response.json().get("entry", [])
     session.close()
 
-    managed = [entry for entry in entries if str(entry.get("name", "")).startswith(MANAGED_PREFIX)]
-    if not managed:
-        raise SystemExit("No DaC-managed saved searches were found to snapshot")
+    managed = [
+        entry
+        for entry in entries
+        if str(entry.get("name", "")).startswith(MANAGED_PREFIX)
+    ]
 
     searches = []
     commits: set[str] = set()
@@ -120,7 +122,10 @@ def main() -> int:
             }
         )
 
-    repository_commit = next(iter(commits)) if len(commits) == 1 else "mixed"
+    if not searches:
+        repository_commit = "empty"
+    else:
+        repository_commit = next(iter(commits)) if len(commits) == 1 else "mixed"
     payload = {
         "schema_version": 1,
         "created_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
