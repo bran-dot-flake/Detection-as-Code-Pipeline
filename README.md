@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="images/detection-as-code-icon.svg" width="170" alt="Detection-as-Code project icon">
+</p>
+
 <h1 align="center">Detection-as-Code Pipeline</h1>
 
 <p align="center"><strong>Sigma · GitHub Actions · Splunk Enterprise · Detection Lifecycle</strong></p>
