@@ -26,13 +26,24 @@ def test_corpus_is_well_formed_sysmon_data():
             record = json.loads(line)
             assert isinstance(record, dict), (path, lineno)
             event_id = record.get("EventID")
-            assert event_id in (1, 3), (path, lineno, f"unsupported demo EventID {event_id}")
+            assert event_id in (1, 3, 22), (
+                path,
+                lineno,
+                f"unsupported demo EventID {event_id}",
+            )
             assert record.get("Image"), (path, lineno, "missing Image")
+
             if event_id == 1:
                 assert record.get("ParentImage"), (path, lineno, "missing ParentImage")
             elif event_id == 3:
                 assert record.get("Protocol"), (path, lineno, "missing Protocol")
-                assert "DestinationPort" in record, (path, lineno, "missing DestinationPort")
+                assert "DestinationPort" in record, (
+                    path,
+                    lineno,
+                    "missing DestinationPort",
+                )
+            elif event_id == 22:
+                assert record.get("QueryName"), (path, lineno, "missing QueryName")
 
 
 def test_sigma_rule_ids_are_unique_and_present():
@@ -46,15 +57,27 @@ def test_sigma_rule_ids_are_unique_and_present():
 
 
 def test_expectations_cover_complete_rule_corpus_matrix():
-    expected = yaml.safe_load((ROOT / "ci" / "expectations.yml").read_text(encoding="utf-8"))
-    pairs = {(str(item["rule"]), item["corpus"]) for item in expected["expectations"]}
+    expected = yaml.safe_load(
+        (ROOT / "ci" / "expectations.yml").read_text(encoding="utf-8")
+    )
+    pairs = {
+        (str(item["rule"]), item["corpus"])
+        for item in expected["expectations"]
+    }
 
     rule_ids = {
         str(yaml.safe_load(path.read_text(encoding="utf-8"))["id"])
         for path in _rule_files()
     }
-    corpora = {str(path.relative_to(CORPUS)) for path in _corpus_files()}
-    required = {(rule_id, corpus) for rule_id in rule_ids for corpus in corpora}
+    corpora = {
+        str(path.relative_to(CORPUS))
+        for path in _corpus_files()
+    }
+    required = {
+        (rule_id, corpus)
+        for rule_id in rule_ids
+        for corpus in corpora
+    }
 
     assert pairs == required, (
         f"Expectation matrix mismatch. Missing: {sorted(required - pairs)}; "

@@ -1,0 +1,27 @@
+title: AgentTesla-01 FTP Domain Lookup
+id: 573a63f3-f985-4a43-be5e-dd7034444f44
+status: experimental
+description: Sysmon Event ID 22 DNS lookup of the FTP destination recovered from the child payload configuration. Domain-specific IOC.
+author: AgentTesla-01 lab analysis
+date: '2026-11-03'
+references:
+  - https://any.run/cybersecurity-blog/agent-tesla-latam-enterprise/
+logsource:
+  product: windows
+  service: sysmon
+detection:
+  selection:
+    EventID: 22
+    QueryName: ftp.ritubohara.com
+  condition: selection
+fields:
+  - QueryName
+  - Image
+  - ProcessGuid
+  - ProcessId
+  - UtcTime
+falsepositives:
+  - Legitimate DNS requests or benign use of the same domain; verify process and surrounding traffic.
+level: high
+tags:
+  - attack.t1071.002
