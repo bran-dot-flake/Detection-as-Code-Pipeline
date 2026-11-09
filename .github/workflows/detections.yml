@@ -11,10 +11,6 @@ permissions:
   contents: read
   pull-requests: read
 
-concurrency:
-  group: detections-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
   RSIGMA_VERSION: '0.25.0'
 
