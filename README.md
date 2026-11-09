@@ -163,13 +163,16 @@ Then set the lab connection values without committing the token:
 ```bash
 export SPLUNK_MANAGEMENT_URL="https://127.0.0.1:8089"
 export SPLUNK_TOKEN="<your-token>"
-export SPLUNK_INDEX="sysmon"
+export SPLUNK_INDEX="dac_test"
 
 # Lab only: Splunk's default self-signed certificate is not trusted.
 export SPLUNK_VERIFY_TLS=false
 
 python scripts/test_splunk_integration.py
 ```
+
+Use a dedicated integration-test index such as `dac_test` so synthetic fixtures
+cannot trigger the real scheduled detections in `index=sysmon`.
 
 The script adds a unique `DaCTestRunId` to every fixture so each run searches only
 the events it just indexed. It also maps fixture `EventID` to Splunk `EventCode`
