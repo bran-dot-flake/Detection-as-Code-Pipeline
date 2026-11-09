@@ -141,6 +141,49 @@ python scripts/deploy_splunk.py
 
 `deploy_splunk.py` is a dry run unless `--live` is supplied.
 
+## Splunk integration test
+
+After Splunk Enterprise is running and the `sysmon` index exists, the repository
+can test the **compiled SPL itself** against the same fixture corpus used by CI.
+
+The script uses the Splunk management REST API on port 8089. It posts one JSON
+event at a time through `/services/receivers/simple`, setting the event source to
+`WinEventLog:Microsoft-Windows-Sysmon/Operational`, then executes each generated
+SPL query through `/services/search/v2/jobs/export`.
+
+Build the SPL first:
+
+```bash
+python -m pip install -r requirements.txt -r requirements-conversion.txt
+python scripts/build_splunk.py
+```
+
+Then set the lab connection values without committing the token:
+
+```bash
+export SPLUNK_MANAGEMENT_URL="https://127.0.0.1:8089"
+export SPLUNK_TOKEN="<your-token>"
+export SPLUNK_INDEX="sysmon"
+
+# Lab only: Splunk's default self-signed certificate is not trusted.
+export SPLUNK_VERIFY_TLS=false
+
+python scripts/test_splunk_integration.py
+```
+
+The script adds a unique `DaCTestRunId` to every fixture so each run searches only
+the events it just indexed. It also maps fixture `EventID` to Splunk `EventCode`
+because the `splunk_windows` pySigma pipeline makes that same field mapping.
+
+A successful run proves both layers:
+
+```text
+Sigma rule -> RSigma corpus test -> compiled SPL -> real Splunk search -> expected count
+```
+
+Do not commit `SPLUNK_TOKEN`. For anything beyond this isolated lab, keep TLS
+verification enabled and trust the Splunk server certificate or your lab CA.
+
 ## Optional Splunk deployment
 
 For a private Splunk Enterprise lab:
