@@ -2,59 +2,69 @@
   <title id="title">Detection-as-Code project icon</title>
   <desc id="desc">Blue and purple DevOps infinity loop with code, database, and security shield symbols.</desc>
   <defs>
-    <linearGradient id="flow" x1="92" y1="338" x2="420" y2="174" gradientUnits="userSpaceOnUse">
+    <linearGradient id="flow" x1="90" y1="340" x2="422" y2="180" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#2F81F7"/>
       <stop offset="1" stop-color="#A238FF"/>
     </linearGradient>
   </defs>
 
-  <rect x="24" y="24" width="464" height="464" rx="84" fill="#0D1117"/>
+  <path
+    d="M94 306
+       C62 274 62 222 94 190
+       C126 158 178 158 210 190
+       L302 282
+       C334 314 386 314 418 282
+       C450 250 450 198 418 166
+       C386 134 334 134 302 166
+       L210 258
+       C178 290 126 290 94 258"
+    fill="none"
+    stroke="url(#flow)"
+    stroke-width="34"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
 
-  <path d="M118 326
-           C74 282 74 212 118 168
-           C162 124 230 130 274 174
-           L394 294
-           C424 324 424 372 394 402
-           C364 432 316 432 286 402
-           L254 370"
-        fill="none" stroke="url(#flow)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+  <path
+    d="M418 306
+       C450 274 450 222 418 190
+       C386 158 334 158 302 190
+       L210 282
+       C178 314 126 314 94 282
+       C62 250 62 198 94 166"
+    fill="none"
+    stroke="url(#flow)"
+    stroke-width="34"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
 
-  <path d="M394 186
-           C438 230 438 300 394 344
-           C350 388 282 382 238 338
-           L118 218
-           C88 188 88 140 118 110
-           C148 80 196 80 226 110
-           L258 142"
-        fill="none" stroke="url(#flow)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
-
-  <path d="M105 325 L142 319 L131 356 Z" fill="#2F81F7"/>
-  <path d="M407 187 L370 193 L381 156 Z" fill="#A238FF"/>
-
-  <g fill="none" stroke="#2F81F7" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M158 246 L132 272 L158 298"/>
-    <path d="M205 246 L231 272 L205 298"/>
-    <path d="M190 232 L174 312"/>
+  <g fill="none" stroke="#2F81F7" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M137 225 L114 248 L137 271"/>
+    <path d="M177 225 L200 248 L177 271"/>
+    <path d="M169 213 L146 283"/>
   </g>
 
   <g fill="#A238FF">
-    <ellipse cx="346" cy="262" rx="48" ry="18"/>
-    <path d="M298 262 V300 C298 310 320 318 346 318 C372 318 394 310 394 300 V262 C394 272 372 280 346 280 C320 280 298 272 298 262 Z"/>
-    <path d="M298 302 V336 C298 346 320 354 346 354 C372 354 394 346 394 336 V302 C394 312 372 320 346 320 C320 320 298 312 298 302 Z"/>
+    <ellipse cx="356" cy="224" rx="40" ry="14"/>
+    <path d="M316 224 V253 C316 262 334 269 356 269 C378 269 396 262 396 253 V224 C396 233 378 240 356 240 C334 240 316 233 316 224 Z"/>
+    <path d="M316 255 V284 C316 293 334 300 356 300 C378 300 396 293 396 284 V255 C396 264 378 271 356 271 C334 271 316 264 316 255 Z"/>
   </g>
 
-  <path d="M256 68
-           C220 94 190 104 164 108
-           V172
-           C164 224 199 262 256 298
-           C313 262 348 224 348 172
-           V108
-           C322 104 292 94 256 68 Z"
-        fill="#0D1117" stroke="#A238FF" stroke-width="16" stroke-linejoin="round"/>
+  <path
+    d="M256 78
+       C228 98 205 106 184 110
+       V151
+       C184 188 209 217 256 246
+       C303 217 328 188 328 151
+       V110
+       C307 106 284 98 256 78 Z"
+    fill="#0D1117"
+    stroke="#A238FF"
+    stroke-width="14"
+    stroke-linejoin="round"/>
 
   <g fill="#A238FF">
-    <rect x="218" y="170" width="18" height="46" rx="3"/>
-    <rect x="247" y="148" width="18" height="68" rx="3"/>
-    <rect x="276" y="126" width="18" height="90" rx="3"/>
+    <rect x="224" y="160" width="15" height="34" rx="2"/>
+    <rect x="249" y="144" width="15" height="50" rx="2"/>
+    <rect x="274" y="126" width="15" height="68" rx="2"/>
   </g>
 </svg>
