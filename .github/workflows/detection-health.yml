@@ -11,7 +11,7 @@ permissions:
 jobs:
   splunk-health:
     name: Check deployed Splunk detection health
-    if: vars.ENABLE_SPLUNK_DEPLOY == 'true'
+    if: github.ref == 'refs/heads/main' && vars.ENABLE_SPLUNK_DEPLOY == 'true'
     runs-on: [self-hosted, linux, splunk-lab]
     environment: splunk-lab
     steps:
