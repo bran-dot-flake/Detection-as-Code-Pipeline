@@ -23,7 +23,7 @@ def main() -> int:
         if rule_id in seen_ids:
             raise SystemExit(f"Duplicate rule ID: {rule_id}")
         seen_ids.add(rule_id)
-        command = ["sigma", "convert", "-t", "splunk", "-p", "sysmon", str(rule)]
+        command = ["sigma", "convert", "-t", "splunk", "-p", "splunk_windows", str(rule)]
         run = subprocess.run(command, capture_output=True, text=True, check=False)
         if run.returncode:
             print(run.stderr, file=sys.stderr)
