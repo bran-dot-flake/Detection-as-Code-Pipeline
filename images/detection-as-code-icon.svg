@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Detection-as-Code project icon</title>
+  <desc id="desc">Blue and purple DevOps infinity loop with code, database, and security shield symbols.</desc>
+  <defs>
+    <linearGradient id="flow" x1="92" y1="338" x2="420" y2="174" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2F81F7"/>
+      <stop offset="1" stop-color="#A238FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="24" y="24" width="464" height="464" rx="84" fill="#0D1117"/>
+
+  <path d="M118 326
+           C74 282 74 212 118 168
+           C162 124 230 130 274 174
+           L394 294
+           C424 324 424 372 394 402
+           C364 432 316 432 286 402
+           L254 370"
+        fill="none" stroke="url(#flow)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M394 186
+           C438 230 438 300 394 344
+           C350 388 282 382 238 338
+           L118 218
+           C88 188 88 140 118 110
+           C148 80 196 80 226 110
+           L258 142"
+        fill="none" stroke="url(#flow)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M105 325 L142 319 L131 356 Z" fill="#2F81F7"/>
+  <path d="M407 187 L370 193 L381 156 Z" fill="#A238FF"/>
+
+  <g fill="none" stroke="#2F81F7" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M158 246 L132 272 L158 298"/>
+    <path d="M205 246 L231 272 L205 298"/>
+    <path d="M190 232 L174 312"/>
+  </g>
+
+  <g fill="#A238FF">
+    <ellipse cx="346" cy="262" rx="48" ry="18"/>
+    <path d="M298 262 V300 C298 310 320 318 346 318 C372 318 394 310 394 300 V262 C394 272 372 280 346 280 C320 280 298 272 298 262 Z"/>
+    <path d="M298 302 V336 C298 346 320 354 346 354 C372 354 394 346 394 336 V302 C394 312 372 320 346 320 C320 320 298 312 298 302 Z"/>
+  </g>
+
+  <path d="M256 68
+           C220 94 190 104 164 108
+           V172
+           C164 224 199 262 256 298
+           C313 262 348 224 348 172
+           V108
+           C322 104 292 94 256 68 Z"
+        fill="#0D1117" stroke="#A238FF" stroke-width="16" stroke-linejoin="round"/>
+
+  <g fill="#A238FF">
+    <rect x="218" y="170" width="18" height="46" rx="3"/>
+    <rect x="247" y="148" width="18" height="68" rx="3"/>
+    <rect x="276" y="126" width="18" height="90" rx="3"/>
+  </g>
+</svg>
