@@ -1,0 +1,3 @@
+{"EventID":22,"QueryName":"ip-api.com","Image":"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe","ProcessId":"5100","Computer":"LAB-WIN01"}
+{"EventID":22,"QueryName":"example.com","Image":"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe","ProcessId":"4200","Computer":"LAB-WIN01"}
+{"EventID":22,"QueryName":"ftp.example.com","Image":"C:\\Windows\\explorer.exe","ProcessId":"1880","Computer":"LAB-WIN01"}

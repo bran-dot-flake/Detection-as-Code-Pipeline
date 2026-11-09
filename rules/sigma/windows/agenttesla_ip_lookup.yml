@@ -1,0 +1,26 @@
+title: AgentTesla-01 IP-API Lookup
+id: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+status: experimental
+description: Sysmon Event ID 22 DNS lookup for ip-api.com originating from the analyzed executable name. The HTTP GET path /line/?fields=hosting was observed in network capture but is not visible in this DNS event alone.
+author: AgentTesla-01 lab analysis
+date: '2026-11-03'
+references:
+  - https://any.run/cybersecurity-blog/agent-tesla-latam-enterprise/
+logsource:
+  product: windows
+  service: sysmon
+detection:
+  selection:
+    EventID: 22
+    QueryName: ip-api.com
+    Image|endswith: \8a8ce129b3b8e9d9cd27fd9cb793f0e0868b67579d595f076e2ffc81d3dafce2.exe
+  condition: selection
+fields:
+  - QueryName
+  - Image
+  - ProcessGuid
+  - ProcessId
+  - UtcTime
+falsepositives:
+  - Legitimate use of ip-api.com by a file with the same name; this rule is sample-specific.
+level: medium

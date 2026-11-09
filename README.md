@@ -1,12 +1,13 @@
 # Detection-as-Code Pipeline
 
-A detection-engineering CI/CD lab that treats Sigma rules like software: keep the
-rules in Git, validate them on every change, replay known-positive and
-known-negative events, compile passing detections to Splunk SPL, and optionally
-promote them to a private Splunk lab.
+A Detection-as-Code CI/CD lab that treats Sigma detections like software: rules
+are versioned in Git, validated against investigation-backed positive and negative
+evidence, compiled to Splunk SPL, verified against a live Splunk instance, and
+deployed as scheduled saved-search alerts only after the promotion controls pass.
 
-The current tests use investigation-backed rules and selected Sysmon evidence from
-my Agent Tesla malware analysis.
+The current detection set is derived from my Agent Tesla malware analysis:
+
+<https://github.com/bran-dot-flake/Agent-Tesla-Malware-Analysis-and-Detection-Engineering>
 
 ## Current detections
 
@@ -14,37 +15,52 @@ my Agent Tesla malware analysis.
 |---|---|---|---:|
 | AgentTesla-01 Self-Spawn | `c8859ff7-c5c3-4975-9ebe-7b35d6a047f2` | Sysmon records `976934`, `976935` | 2 |
 | AgentTesla-01 FTP Connection | `e308373e-277b-47f7-aa9e-2dbcbc61478b` | Sysmon record `977067` | 1 |
+| AgentTesla-01 FTP Domain Lookup | `573a63f3-f985-4a43-be5e-dd7034444f44` | Sysmon record `977063` | 1 |
+| AgentTesla-01 IP-API Lookup | `71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce` | Sysmon record `977057` | 1 |
 
-Source investigation:
-<https://github.com/bran-dot-flake/Agent-Tesla-Malware-Analysis-and-Detection-Engineering>
+The source evidence repository stores domains defanged. The CI fixtures normalize
+those domain values back to their operational form so the Sigma matchers can be
+tested while retaining the source event record IDs and surrounding fields.
 
 ## Pipeline
 
 ```text
-Sigma rules in Git
-       |
-       v
-GitHub Actions
-       |
-       +-- fixture/schema checks
-       +-- Sigma validation
-       +-- RSigma backtest
-       |     real positives      -> MUST MATCH
-       |     real near-misses    -> MUST NOT MATCH
-       |     synthetic benign    -> MUST NOT MATCH
-       |
-       +-- only if every expectation passes
-       v
-Sigma CLI + Splunk Windows pipeline
-       |
-       v
-Splunk SPL artifact
-       |
-       +-- optional later: self-hosted runner -> Splunk REST API
+feature branch
+      |
+      v
+pull request
+      |
+      +-- fixture/schema validation
+      +-- Sigma validation
+      +-- positive / negative RSigma backtest
+      +-- complete rule x corpus expectation matrix
+      +-- Sigma -> Splunk SPL compilation
+      |
+      v
+required checks pass
+      |
+      v
+merge to protected main
+      |
+      +-- promotion gate verifies merged PR origin
+      |
+      v
+self-hosted Debian Splunk runner
+      |
+      +-- download compiled SPL artifact
+      +-- ingest isolated fixtures into index=dac_test
+      +-- execute generated SPL against live Splunk
+      |
+      v
+live integration passes
+      |
+      v
+create/update scheduled alerts targeting index=sysmon
 ```
 
-A failed expectation stops the pipeline before SPL is published or deployment can
-occur.
+The private self-hosted runner never executes pull-request code. Pull requests use
+GitHub-hosted runners for validation and compilation; live Splunk access occurs
+only after a trusted revision reaches `main`.
 
 ## Evidence-backed test cases
 
@@ -67,66 +83,142 @@ destination port 21.
 - Synthetic normal FTP clients -> TCP/21: must not match because the image does
   not match the analyzed sample.
 
-The selected real events are adapted from
-`cases/Agent Tesla/evidence/sysmon-selected-events.json`. Values needed by the
-matcher are represented with JSON-native types in the CI fixtures; the event
-record IDs and observed field values are retained.
+### FTP Domain Lookup
+
+The rule requires Sysmon Event ID 22 and the recovered FTP destination
+`ftp.ritubohara.com`.
+
+- Record `977063`: DNS lookup of the recovered FTP destination. Must match.
+- Record `977057`: DNS lookup of `ip-api.com`. Must not match.
+- Synthetic normal DNS activity: must not match.
+
+This is intentionally a domain-specific IOC rule. Legitimate resolution of the
+same domain remains a documented false-positive possibility.
+
+### IP-API Lookup
+
+The rule requires Sysmon Event ID 22, `ip-api.com`, and the analyzed executable
+name.
+
+- Record `977057`: sample -> DNS lookup of `ip-api.com`. Must match.
+- Record `977063`: sample -> FTP-domain lookup. Must not match.
+- Synthetic Chrome -> `ip-api.com`: must not match, proving that the process
+  image constraint is required.
+
+The packet capture separately recorded
+`GET /line/?fields=hosting` to `ip-api.com`; that HTTP path is supporting
+network evidence and is not claimed to be present in the Sysmon DNS event.
 
 ## Complete expectation matrix
 
-`ci/expectations.yml` explicitly defines an expected count for **every
-rule/corpus pair**. The Python hygiene test verifies that the matrix is complete,
-so adding a rule or fixture without defining its expected behavior fails CI before
-the backtest even starts.
+`ci/expectations.yml` defines an expected match count for every rule/corpus pair,
+and `tests/test_fixtures.py` fails CI if any pair is missing or stale.
 
-With 2 rules and 6 corpus files, the current matrix has 12 expectations.
+Current coverage:
+
+```text
+4 Sigma rules
+x
+9 corpus files
+=
+36 explicit expectations
+```
+
+This makes new test data regression-sensitive across the entire detection set,
+not only the rule it was originally added for.
 
 ## Regression demonstration
 
 A temporary branch intentionally removed the Self-Spawn rule's `ParentImage`
-condition. The rule still detected the two true-positive child events, but it also
-detected record `976880` (Explorer -> sample):
+condition. The rule remained syntactically valid and still detected the two
+positive events, but it also detected record `976880` (Explorer -> sample).
 
 ```text
 Expected near-miss matches: 0
 Observed near-miss matches: 1
 
-Backtest: 2/3 expectations passed
 Result: FAILED
 Splunk compilation: SKIPPED
+Deployment: BLOCKED
 ```
 
-This demonstrates the core Detection-as-Code control: a syntactically valid rule
-can still be rejected because its behavior regressed.
-
 Failed demonstration run:
+
 <https://github.com/bran-dot-flake/Detection-as-Code-Pipeline/actions/runs/42632208052>
 
-## CI behavior
+This demonstrates why the pipeline tests detection behavior rather than treating
+syntax validation as sufficient.
 
-The GitHub Actions workflow runs on pushes and pull requests:
+## Pull-request and promotion controls
 
-1. Validate NDJSON fixtures and the full expectation matrix.
-2. Validate Sigma syntax/structure with RSigma.
-3. Backtest every rule against every corpus file.
-4. Fail if a required positive is missed or a known-negative event fires.
-5. Only after tests pass, compile all rules to Splunk SPL with the
-   `splunk_windows` processing pipeline.
-6. Publish the SPL files and build manifest as a GitHub Actions artifact.
+The `main` branch is protected by an active GitHub ruleset:
 
-The optional Splunk deployment job is disabled unless repository variable
-`ENABLE_SPLUNK_DEPLOY` is explicitly set to `true`.
+- pull requests are required;
+- `Validate and test Sigma rules` must pass;
+- `Compile rules to Splunk SPL` must pass;
+- branches must be up to date before merge;
+- branch deletion and force pushes are blocked.
+
+The workflow independently verifies that an automatic push-to-`main` deployment
+is associated with a merged pull request. Manual workflow dispatch is retained for
+an explicit redeploy of the current trusted `main` revision.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development flow.
+
+## Live Splunk integration
+
+The live test uses a dedicated `dac_test` index so fixture events cannot trigger
+the real scheduled detections in `index=sysmon`.
+
+The script:
+
+1. posts the NDJSON corpus through Splunk's management REST API;
+2. tags each run with a unique `DaCTestRunId`;
+3. maps fixture `EventID` to Splunk `EventCode`;
+4. runs each generated SPL search through the live Splunk search API;
+5. compares the returned count with the expected rule total.
+
+A successful run proves:
+
+```text
+Sigma rule
+  -> RSigma behavior test
+  -> compiled SPL artifact
+  -> real Splunk execution
+  -> expected live result count
+```
+
+## Splunk deployment
+
+Passing detections are created or updated idempotently through the Splunk REST API
+as scheduled alerts in the `search` app.
+
+Current lab behavior:
+
+```text
+target index:       sysmon
+schedule:           every 5 minutes
+search window:      previous 5 minutes
+trigger condition:  result count > 0
+deployment:         create or update by saved-search name
+```
+
+The GitHub environment stores `SPLUNK_MANAGEMENT_URL` and `SPLUNK_TOKEN` as
+secrets. Repository variables select `sysmon`, `dac_test`, TLS behavior for the
+isolated lab, and whether deployment is enabled.
 
 ## Run locally
 
-Python 3.12+:
+Python:
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
 python -m pip install -r requirements.txt -r requirements-conversion.txt
 python -m pytest -q tests/test_fixtures.py
 ```
 
-Install RSigma 0.25.0, then:
+With RSigma 0.25.0 installed:
 
 ```bash
 rsigma rule validate rules/sigma/
@@ -135,80 +227,29 @@ rsigma rule backtest \
   --corpus tests/sample-logs/ \
   --expectations ci/expectations.yml \
   --unexpected fail
-python scripts/build_splunk.py
-python scripts/deploy_splunk.py
-```
 
-`deploy_splunk.py` is a dry run unless `--live` is supplied.
-
-## Splunk integration test
-
-After Splunk Enterprise is running and the `sysmon` index exists, the repository
-can test the **compiled SPL itself** against the same fixture corpus used by CI.
-
-The script uses the Splunk management REST API on port 8089. It posts one JSON
-event at a time through `/services/receivers/simple`, setting the event source to
-`WinEventLog:Microsoft-Windows-Sysmon/Operational`, then executes each generated
-SPL query through `/services/search/v2/jobs/export`.
-
-Build the SPL first:
-
-```bash
-python -m pip install -r requirements.txt -r requirements-conversion.txt
 python scripts/build_splunk.py
 ```
 
-Then set the lab connection values without committing the token:
+For the isolated Splunk lab:
 
 ```bash
 export SPLUNK_MANAGEMENT_URL="https://127.0.0.1:8089"
-export SPLUNK_TOKEN="<your-token>"
+export SPLUNK_TOKEN="<token>"
 export SPLUNK_INDEX="dac_test"
-
-# Lab only: Splunk's default self-signed certificate is not trusted.
 export SPLUNK_VERIFY_TLS=false
 
 python scripts/test_splunk_integration.py
 ```
 
-Use a dedicated integration-test index such as `dac_test` so synthetic fixtures
-cannot trigger the real scheduled detections in `index=sysmon`.
-
-The script adds a unique `DaCTestRunId` to every fixture so each run searches only
-the events it just indexed. It also maps fixture `EventID` to Splunk `EventCode`
-because the `splunk_windows` pySigma pipeline makes that same field mapping.
-
-A successful run proves both layers:
-
-```text
-Sigma rule -> RSigma corpus test -> compiled SPL -> real Splunk search -> expected count
-```
-
-Do not commit `SPLUNK_TOKEN`. For anything beyond this isolated lab, keep TLS
-verification enabled and trust the Splunk server certificate or your lab CA.
-
-## Optional Splunk deployment
-
-For a private Splunk Enterprise lab:
-
-1. Ingest Sysmon data and verify generated SPL against your field mappings.
-2. Create a limited-privilege Splunk API token.
-3. Register a GitHub self-hosted Linux runner that can reach Splunk's management
-   API on HTTPS port 8089. Do not expose that management port publicly.
-4. Configure the `splunk-lab` GitHub environment and secrets
-   `SPLUNK_MANAGEMENT_URL` and `SPLUNK_TOKEN`.
-5. Set repository variable `ENABLE_SPLUNK_DEPLOY=true`.
-
-Only a trusted push to `main`, after validation, backtesting, and conversion
-pass, can reach the deployment job.
+Never commit the Splunk token. TLS verification is disabled only because this
+isolated lab uses Splunk's default self-signed certificate.
 
 ## Next milestones
 
-- Add the DNS/IP-API Agent Tesla rules with real positive/near-miss fixtures.
-- Add a Splunk integration test that executes compiled SPL against representative
-  Sysmon data.
-- Deploy passing saved searches to a private Splunk lab.
-- Add detection-health telemetry and rollback handling.
+The core CI/CD pipeline is complete. Useful future extensions include detection
+health telemetry, rollback/version metadata, additional malware cases, and
+cross-platform compilation targets such as Sentinel KQL.
 
 ## References
 

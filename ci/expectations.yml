@@ -1,6 +1,7 @@
 # Complete rule x corpus expectation matrix.
-# Real AgentTesla-01 events are from the sanitized Sysmon evidence set.
-# Benign baseline events are synthetic regression fixtures.
+# Real AgentTesla-01 events are adapted from the sanitized Sysmon evidence set.
+# Domains defanged in the source evidence are normalized here to the operational
+# values required by the Sigma matchers. Benign baseline events are synthetic.
 defaults:
   unexpected_detections: fail
 expectations:
@@ -12,6 +13,12 @@ expectations:
     corpus: malicious/agenttesla_ftp_connection.ndjson
     exactly: 0
   - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+    corpus: malicious/agenttesla_ftp_dns.ndjson
+    exactly: 0
+  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+    corpus: malicious/agenttesla_ip_api_dns.ndjson
+    exactly: 0
+  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
     corpus: nonmatching/agenttesla_initial_launch.ndjson
     exactly: 0
   - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
@@ -22,6 +29,9 @@ expectations:
     exactly: 0
   - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
     corpus: benign/normal_ftp_connection.ndjson
+    exactly: 0
+  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+    corpus: benign/normal_dns.ndjson
     exactly: 0
 
   # AgentTesla-01 FTP Connection
@@ -32,6 +42,12 @@ expectations:
     corpus: malicious/agenttesla_ftp_connection.ndjson
     exactly: 1
   - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
+    corpus: malicious/agenttesla_ftp_dns.ndjson
+    exactly: 0
+  - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
+    corpus: malicious/agenttesla_ip_api_dns.ndjson
+    exactly: 0
+  - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
     corpus: nonmatching/agenttesla_initial_launch.ndjson
     exactly: 0
   - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
@@ -43,3 +59,65 @@ expectations:
   - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
     corpus: benign/normal_ftp_connection.ndjson
     exactly: 0
+  - rule: e308373e-277b-47f7-aa9e-2dbcbc61478b
+    corpus: benign/normal_dns.ndjson
+    exactly: 0
+
+  # AgentTesla-01 FTP Domain Lookup
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: malicious/agenttesla_self_spawn.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: malicious/agenttesla_ftp_connection.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: malicious/agenttesla_ftp_dns.ndjson
+    exactly: 1
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: malicious/agenttesla_ip_api_dns.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: nonmatching/agenttesla_initial_launch.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: nonmatching/agenttesla_http_connection.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: benign/normal_parent_child.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: benign/normal_ftp_connection.ndjson
+    exactly: 0
+  - rule: 573a63f3-f985-4a43-be5e-dd7034444f44
+    corpus: benign/normal_dns.ndjson
+    exactly: 0
+
+  # AgentTesla-01 IP-API Lookup
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: malicious/agenttesla_self_spawn.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: malicious/agenttesla_ftp_connection.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: malicious/agenttesla_ftp_dns.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: malicious/agenttesla_ip_api_dns.ndjson
+    exactly: 1
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: nonmatching/agenttesla_initial_launch.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: nonmatching/agenttesla_http_connection.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: benign/normal_parent_child.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: benign/normal_ftp_connection.ndjson
+    exactly: 0
+  - rule: 71e71ad1-dd8c-4e65-b4b7-9f5e11abf9ce
+    corpus: benign/normal_dns.ndjson
+    exactly: 0
+
