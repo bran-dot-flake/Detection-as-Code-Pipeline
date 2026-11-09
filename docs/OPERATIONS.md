@@ -50,3 +50,14 @@ The manual `Rollback Splunk Detections` workflow requires:
 Before restoring, the workflow takes another snapshot of the current state. It then restores the selected snapshot, disables any managed searches introduced after that snapshot, and verifies the live fields against the backup.
 
 An empty snapshot is valid and represents a state with no active pipeline-managed detections.
+
+## After a rollback
+
+Rollback is an emergency recovery action, not a new desired-state declaration. If an older snapshot is restored while `main` still describes a newer version, the scheduled health workflow will report the deployed commit as stale. That is intentional.
+
+Resolve the state deliberately by either:
+
+- reverting or updating the detection change in Git through the normal pull-request path; or
+- redeploying the current trusted `main` revision when the incident is resolved.
+
+This keeps Git authoritative instead of silently treating a rollback artifact as the new source of truth.
