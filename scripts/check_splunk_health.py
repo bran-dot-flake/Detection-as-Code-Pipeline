@@ -180,6 +180,42 @@ def get_all_managed(
     }
 
 
+def enabled_orphan_results(
+    live_managed: dict[str, dict],
+    expected_names: set[str],
+) -> list[dict]:
+    results: list[dict] = []
+    for name in sorted(set(live_managed) - expected_names):
+        content = live_managed[name].get("content", {})
+        if boolish(content.get("disabled")):
+            continue
+        results.append(
+            {
+                "id": "-",
+                "title": name.removeprefix("DaC - "),
+                "name": name,
+                "source": "splunk-only",
+                "status": "ERROR",
+                "errors": [
+                    "managed saved search is enabled in Splunk but absent from Git"
+                ],
+                "warnings": [],
+                "scheduled": boolish(content.get("is_scheduled")),
+                "enabled": True,
+                "cron": str(content.get("cron_schedule", "-")),
+                "next_run": str(content.get("next_scheduled_time", "-")),
+                "last_run": "-",
+                "last_state": "ORPHANED",
+                "result_count": "-",
+                "deployed_commit": parse_metadata(
+                    str(content.get("description", ""))
+                ).get("commit", "-"),
+                "query_drift": "unknown",
+            }
+        )
+    return results
+
+
 def assess_rule(
     session: requests.Session,
     base: str,
@@ -417,35 +453,7 @@ def main() -> int:
 
     expected_names = {rule["name"] for rule in expected_rules}
     live_managed = get_all_managed(session, base, app)
-    for name in sorted(set(live_managed) - expected_names):
-        content = live_managed[name].get("content", {})
-        disabled = boolish(content.get("disabled"))
-        if disabled:
-            continue
-        results.append(
-            {
-                "id": "-",
-                "title": name.removeprefix("DaC - "),
-                "name": name,
-                "source": "splunk-only",
-                "status": "ERROR",
-                "errors": [
-                    "managed saved search is enabled in Splunk but absent from Git"
-                ],
-                "warnings": [],
-                "scheduled": boolish(content.get("is_scheduled")),
-                "enabled": True,
-                "cron": str(content.get("cron_schedule", "-")),
-                "next_run": str(content.get("next_scheduled_time", "-")),
-                "last_run": "-",
-                "last_state": "ORPHANED",
-                "result_count": "-",
-                "deployed_commit": parse_metadata(
-                    str(content.get("description", ""))
-                ).get("commit", "-"),
-                "query_drift": "unknown",
-            }
-        )
+    results.extend(enabled_orphan_results(live_managed, expected_names))
     session.close()
 
     generated_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
