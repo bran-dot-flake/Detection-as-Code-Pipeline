@@ -276,6 +276,71 @@ reports/splunk-health.json
 The Markdown report is also appended to the GitHub Actions job summary so health
 can be reviewed without downloading the artifact.
 
+## Rollback and version recovery
+
+Every trusted deployment now captures the current live `DaC -` saved-search
+configuration before any update is applied. The snapshot is uploaded as the
+`splunk-rollback-backup` artifact for that deployment workflow run and retained
+for 30 days.
+
+The snapshot contains only the saved-search fields owned by this pipeline:
+
+```text
+search
+description / lifecycle metadata
+enabled state
+schedule / cron
+dispatch window
+alert threshold and comparator
+alert tracking state
+```
+
+The deployment job parses the snapshot with the rollback tool before continuing,
+so a malformed recovery artifact blocks the new deployment.
+
+Rollback is intentionally manual. The `Rollback Splunk Detections` workflow
+requires:
+
+1. the GitHub Actions run ID whose pre-deployment snapshot should be restored;
+2. explicit confirmation;
+3. execution from the protected `main` branch.
+
+Before restoring the selected snapshot, the rollback workflow captures the
+current Splunk state again and uploads it as a separate safety artifact. This
+makes the rollback operation itself reversible.
+
+During restore, saved searches that existed in the selected snapshot are
+created or updated back to their recorded configuration. Any pipeline-managed
+`DaC -` searches that are not present in the older snapshot are disabled rather
+than deleted.
+
+The restore script then reads the live saved-search configuration back from
+Splunk and compares every pipeline-owned field with the snapshot. A rollback
+report is published as Markdown and JSON, and the workflow fails if the restored
+state does not match.
+
+```text
+normal deployment
+      |
+      +-- snapshot live state
+      +-- upload splunk-rollback-backup
+      +-- validate snapshot is readable
+      |
+      v
+deploy new version
+
+manual recovery
+      |
+      +-- select deployment run ID
+      +-- snapshot current state again
+      +-- restore selected pre-deploy snapshot
+      +-- disable post-snapshot extras
+      +-- verify live state matches snapshot
+      |
+      v
+rollback report
+```
+
 ## Splunk deployment
 
 Passing detections are created or updated idempotently through the Splunk REST API
@@ -334,10 +399,10 @@ isolated lab uses Splunk's default self-signed certificate.
 
 ## Next milestones
 
-The core CI/CD and health-monitoring paths are complete. Useful extensions now include:
+The core CI/CD, health-monitoring, and rollback paths are complete. Useful extensions now include:
 
-- rollback/version recovery for deployed saved searches;
 - alert-volume and false-positive telemetry from analyst outcomes;
+- automated rollback recommendations without automatic execution;
 - additional investigation-backed rule families;
 - a second compilation/deployment target such as Microsoft Sentinel KQL.
 
