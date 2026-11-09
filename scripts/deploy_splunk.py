@@ -16,15 +16,26 @@ def check_target(url):
     return url.rstrip("/")
 
 
-def deploy(session, base_url, app, name, query):
+def env_bool(name, default=True):
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() not in {"0", "false", "no", "off"}
+
+
+def deploy(session, base_url, app, index, name, query):
     namespace = f"{base_url}/servicesNS/nobody/{quote(app, safe='')}/saved/searches"
     item_url = f"{namespace}/{quote(name, safe='')}"
     check = session.get(item_url, params={"output_mode": "json"}, timeout=20)
     if check.status_code not in (200, 404):
         check.raise_for_status()
-    # Add 'search' for a normal SPL search; pySigma usually emits a search expression.
-    if not query.lstrip().lower().startswith(("search ", "|")):
-        query = "search " + query
+    # Scope every deployed detection to the configured Splunk index.
+    compiled = query.strip()
+    if compiled.lower().startswith("search "):
+        compiled = compiled[7:].strip()
+    if compiled.startswith("|"):
+        raise RuntimeError(f"Unexpected compiled SPL form for {name}: {compiled}")
+    query = f'search index="{index}" {compiled}'
     data = {
         "search": query,
         "is_scheduled": "1",
@@ -34,7 +45,9 @@ def deploy(session, base_url, app, name, query):
         "alert_type": "number of events",
         "alert_comparator": "greater than",
         "alert_threshold": "0",
-        "alert.track": "1",
+        "alert.track": "true",
+        "description": "Managed by the Detection-as-Code-Pipeline repository.",
+        "disabled": "0",
     }
     if check.status_code == 404:
         data["name"] = name
@@ -61,20 +74,27 @@ def main():
     base = os.environ.get("SPLUNK_MANAGEMENT_URL", "")
     token = os.environ.get("SPLUNK_TOKEN", "")
     app = os.environ.get("SPLUNK_APP", "search")
+    index = os.environ.get("SPLUNK_INDEX", "sysmon")
     if args.live and not token:
         raise SystemExit("Missing SPLUNK_TOKEN")
     if args.live:
         base = check_target(base)
+    ca_bundle = os.environ.get("SPLUNK_CA_BUNDLE")
+    verify = ca_bundle if ca_bundle else env_bool("SPLUNK_VERIFY_TLS", True)
+    if verify is False:
+        requests.packages.urllib3.disable_warnings()  # type: ignore[attr-defined]
+        print("WARNING: TLS verification is disabled for this lab deployment")
+
     session = requests.Session()
     session.headers.update({"Authorization": f"Bearer {token}"})
-    # TLS certificate verification remains enabled. Set REQUESTS_CA_BUNDLE if necessary.
+    session.verify = verify
     for entry in entries:
         name = "DaC - " + entry["title"]
         query = (OUT / entry["filename"]).read_text(encoding="utf-8").strip()
         if not args.live:
             print(f"DRY RUN: would deploy {name} ({entry['filename']})")
         else:
-            result = deploy(session, base, app, name, query)
+            result = deploy(session, base, app, index, name, query)
             print(f"{result.upper()}: {name}")
     session.close()
 
