@@ -17,7 +17,7 @@ GitHub Actions (push / pull request)
        +-- Backtest against malicious and benign event fixtures
        |       malicious: matches expected, benign: zero matches
        |
-       +-- Convert with Sigma CLI + Sysmon processing pipeline
+       +-- Convert with Sigma CLI + Splunk Windows processing pipeline
        |
        v
 SPL artifact (downloadable from GitHub Actions)
@@ -87,8 +87,8 @@ Use a trial or eligible Developer license for a nonproduction lab.
 
 1. Create a Splunk Enterprise lab and configure Sysmon event ingestion.
 2. Confirm your index/source/field mapping is compatible with the generated SPL.
-   The `sysmon` processing pipeline maps Sigma process creation events to Sysmon
-   Event ID 1, but **does not ensure your actual index is searched**.
+   The `splunk_windows` processing pipeline adds Splunk Windows log-source conditions
+   and maps `EventID` to `EventCode`; it **does not ensure your actual index is searched**.
 3. Create a limited-privilege Splunk API token with rights to manage the saved
    searches in your chosen app. Install a trusted TLS certificate or configure
    the runner to trust your lab CA.
