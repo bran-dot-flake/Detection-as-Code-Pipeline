@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="330" viewBox="0 0 1280 330" role="img" aria-labelledby="title desc">
+  <title id="title">Detection-as-Code lifecycle</title>
+  <desc id="desc">Sigma rules move through regression tests, protected pull request checks, SPL compilation, live Splunk verification, deployment and reconciliation, then health monitoring and rollback feed back into the lifecycle.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d1117"/><stop offset="1" stop-color="#111827"/></linearGradient>
+    <linearGradient id="loop" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f81f7"/><stop offset="0.5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#2ea043"/></linearGradient>
+    <style>
+      .eyebrow{font:600 13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#8c959f;letter-spacing:1.7px}
+      .stage{font:700 17px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#f0f6fc}
+      .sub{font:500 11.5px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#9da7b3}
+      .num{font:700 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#fff}
+      .feedback{font:700 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#7ee787;letter-spacing:1px}
+    </style>
+  </defs>
+  <rect x="1" y="1" width="1278" height="328" rx="18" fill="url(#bg)" stroke="#30363d"/>
+  <text x="30" y="34" class="eyebrow">DETECTION LIFECYCLE</text>
+  <text x="1250" y="34" text-anchor="end" class="eyebrow">GIT → CI → SPLUNK → FEEDBACK</text>
+  <g stroke="#6e7681" stroke-width="2.5" fill="none">
+    <path d="M166 140 H194"/><path d="M188 134 L198 140 L188 146"/>
+    <path d="M346 140 H374"/><path d="M368 134 L378 140 L368 146"/>
+    <path d="M526 140 H554"/><path d="M548 134 L558 140 L548 146"/>
+    <path d="M706 140 H734"/><path d="M728 134 L738 140 L728 146"/>
+    <path d="M886 140 H914"/><path d="M908 134 L918 140 L908 146"/>
+    <path d="M1066 140 H1094"/><path d="M1088 134 L1098 140 L1088 146"/>
+  </g>
+  <g>
+    <rect x="26" y="76" width="140" height="128" rx="14" fill="#161b22" stroke="#2f81f7" stroke-width="1.5"/><rect x="26" y="76" width="140" height="6" rx="3" fill="#2f81f7"/>
+    <circle cx="49" cy="102" r="12" fill="#2f81f7"/><text x="49" y="106" text-anchor="middle" class="num">1</text>
+    <text x="96" y="131" text-anchor="middle" class="stage">Sigma Rules</text><text x="96" y="160" text-anchor="middle" class="sub">Git source of truth</text><text x="96" y="179" text-anchor="middle" class="sub">versioned detections</text>
+  </g>
+  <g>
+    <rect x="206" y="76" width="140" height="128" rx="14" fill="#161b22" stroke="#2f81f7" stroke-width="1.5"/><rect x="206" y="76" width="140" height="6" rx="3" fill="#2f81f7"/>
+    <circle cx="229" cy="102" r="12" fill="#2f81f7"/><text x="229" y="106" text-anchor="middle" class="num">2</text>
+    <text x="276" y="131" text-anchor="middle" class="stage">Regression</text><text x="276" y="151" text-anchor="middle" class="stage">Tests</text><text x="276" y="177" text-anchor="middle" class="sub">positive · benign</text><text x="276" y="194" text-anchor="middle" class="sub">near-miss</text>
+  </g>
+  <g>
+    <rect x="386" y="76" width="140" height="128" rx="14" fill="#161b22" stroke="#8b5cf6" stroke-width="1.5"/><rect x="386" y="76" width="140" height="6" rx="3" fill="#8b5cf6"/>
+    <circle cx="409" cy="102" r="12" fill="#8b5cf6"/><text x="409" y="106" text-anchor="middle" class="num">3</text>
+    <text x="456" y="131" text-anchor="middle" class="stage">Protected</text><text x="456" y="151" text-anchor="middle" class="stage">PR Gate</text><text x="456" y="180" text-anchor="middle" class="sub">required checks</text>
+  </g>
+  <g>
+    <rect x="566" y="76" width="140" height="128" rx="14" fill="#161b22" stroke="#8b5cf6" stroke-width="1.5"/><rect x="566" y="76" width="140" height="6" rx="3" fill="#8b5cf6"/>
+    <circle cx="589" cy="102" r="12" fill="#8b5cf6"/><text x="589" y="106" text-anchor="middle" class="num">4</text>
+    <text x="636" y="131" text-anchor="middle" class="stage">Compile</text><text x="636" y="151" text-anchor="middle" class="stage">to SPL</text><text x="636" y="180" text-anchor="middle" class="sub">Sigma → Splunk</text>
+  </g>
+  <g>
+    <rect x="746" y="76" width="140" height="128" rx="14" fill="#161b22" stroke="#8b5cf6" stroke-width="1.5"/><rect x="746" y="76" width="140" height="6" rx="3" fill="#8b5cf6"/>
+    <circle cx="769" cy="102" r="12" fill="#8b5cf6"/><text x="769" y="106" text-anchor="middle" class="num">5</text>
+    <text x="816" y="131" text-anchor="middle" class="stage">Live Splunk</text><text x="816" y="151" text-anchor="middle" class="stage">Verify</text><text x="816" y="180" text-anchor="middle" class="sub">isolated dac_test</text>
+  </g>
+  <g>
+    <rect x="926" y="76" width="140" height="128" rx="14" fill="#161b22" stroke="#2ea043" stroke-width="1.5"/><rect x="926" y="76" width="140" height="6" rx="3" fill="#2ea043"/>
+    <circle cx="949" cy="102" r="12" fill="#2ea043"/><text x="949" y="106" text-anchor="middle" class="num">6</text>
+    <text x="996" y="131" text-anchor="middle" class="stage">Deploy +</text><text x="996" y="151" text-anchor="middle" class="stage">Reconcile</text><text x="996" y="177" text-anchor="middle" class="sub">snapshot · sysmon</text><text x="996" y="194" text-anchor="middle" class="sub">desired state</text>
+  </g>
+  <g>
+    <rect x="1106" y="76" width="148" height="128" rx="14" fill="#161b22" stroke="#2ea043" stroke-width="1.5"/><rect x="1106" y="76" width="148" height="6" rx="3" fill="#2ea043"/>
+    <circle cx="1129" cy="102" r="12" fill="#2ea043"/><text x="1129" y="106" text-anchor="middle" class="num">7</text>
+    <text x="1180" y="131" text-anchor="middle" class="stage">Health +</text><text x="1180" y="151" text-anchor="middle" class="stage">Recovery</text><text x="1180" y="177" text-anchor="middle" class="sub">drift · scheduler</text><text x="1180" y="194" text-anchor="middle" class="sub">verified rollback</text>
+  </g>
+  <path d="M1180 220 C1180 284,1090 292,640 292 C190 292,96 284,96 220" fill="none" stroke="url(#loop)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M89 230 L96 217 L103 230" fill="#2ea043"/>
+  <text x="640" y="280" text-anchor="middle" class="feedback">CONTINUOUS FEEDBACK · HEALTH · RECOVERY</text>
+</svg>
