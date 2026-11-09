@@ -1,0 +1,3 @@
+{"EventID":1,"Image":"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe","ParentImage":"C:\\Windows\\explorer.exe","ProcessId":"4200","ParentProcessId":"1880","Computer":"LAB-WIN01"}
+{"EventID":1,"Image":"C:\\Windows\\System32\\svchost.exe","ParentImage":"C:\\Windows\\System32\\services.exe","ProcessId":"1408","ParentProcessId":"756","Computer":"LAB-WIN01"}
+{"EventID":1,"Image":"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe","ParentImage":"C:\\Windows\\explorer.exe","ProcessId":"5120","ParentProcessId":"1880","Computer":"LAB-WIN01"}

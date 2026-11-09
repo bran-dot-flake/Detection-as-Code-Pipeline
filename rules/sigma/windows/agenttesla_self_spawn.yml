@@ -1,0 +1,28 @@
+title: AgentTesla-01 Self-Spawn
+id: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+status: experimental
+description: Sysmon Event ID 1 with both Image and ParentImage ending in the analyzed sample filename. Observed parent-child activity.
+author: AgentTesla-01 lab analysis
+date: '2026-11-03'
+references:
+  - https://any.run/cybersecurity-blog/agent-tesla-latam-enterprise/
+logsource:
+  product: windows
+  service: sysmon
+detection:
+  selection:
+    EventID: 1
+    Image|endswith: \8a8ce129b3b8e9d9cd27fd9cb793f0e0868b67579d595f076e2ffc81d3dafce2.exe
+    ParentImage|endswith: \8a8ce129b3b8e9d9cd27fd9cb793f0e0868b67579d595f076e2ffc81d3dafce2.exe
+  condition: selection
+fields:
+  - Image
+  - ParentImage
+  - ProcessGuid
+  - ParentProcessGuid
+  - ProcessId
+  - ParentProcessId
+  - UtcTime
+falsepositives:
+  - Analyst re-execution or benign files reusing the same filename.
+level: medium

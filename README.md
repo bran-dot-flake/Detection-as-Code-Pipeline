@@ -1,49 +1,94 @@
 # Detection-as-Code Pipeline
 
-A small, reproducible detection-engineering lab: version Sigma rules, validate
-them, replay malicious/benign sample logs, convert passing rules into Splunk SPL,
-and optionally deploy scheduled Splunk saved searches.
+A detection-engineering CI/CD lab that treats Sigma rules like software: keep the
+rule in Git, validate it on every change, replay known-positive and known-negative
+events, compile passing detections to Splunk SPL, and optionally promote them to a
+private Splunk lab.
 
-## Architecture
+The first production-style test case is taken from my Agent Tesla malware analysis
+rather than a synthetic detection.
+
+## Current detection
+
+**AgentTesla-01 Self-Spawn**  
+Sigma ID: `c8859ff7-c5c3-4975-9ebe-7b35d6a047f2`
+
+The rule detects Sysmon Event ID 1 when both `Image` and `ParentImage` end with
+the analyzed sample filename. The investigation recorded two matching child-process
+events:
+
+- Event record `976934` — PID 2608, parent PID 5736
+- Event record `976935` — PID 2628, parent PID 5736
+
+The same evidence set also contains a useful near-miss: record `976880`, where
+Explorer launched the sample. That event must **not** match because the parent image
+is `explorer.exe`.
+
+Source investigation:
+<https://github.com/bran-dot-flake/Agent-Tesla-Malware-Analysis-and-Detection-Engineering>
+
+## Pipeline
 
 ```text
-Sigma YAML in Git
-       |
-       v
-GitHub Actions (push / pull request)
-       |
-       +-- Parse + validate rule (RSigma)
-       |
-       +-- Backtest against malicious and benign event fixtures
-       |       malicious: matches expected, benign: zero matches
-       |
-       +-- Convert with Sigma CLI + Splunk Windows processing pipeline
-       |
-       v
-SPL artifact (downloadable from GitHub Actions)
-       |
-       +-- [optional, main only] self-hosted runner -> Splunk REST API
-       |                                    -> scheduled saved searches
-       v
-Future: monitor schedules, execution errors, true/false positives
+Sigma rule in Git
+      |
+      v
+GitHub Actions
+      |
+      +-- fixture/schema checks
+      |
+      +-- Sigma validation
+      |
+      +-- RSigma backtest
+      |      2 real Agent Tesla positives -> MUST MATCH
+      |      1 real Agent Tesla near-miss  -> MUST NOT MATCH
+      |      3 synthetic benign events     -> MUST NOT MATCH
+      |
+      +-- only if all tests pass
+      v
+Sigma CLI + Splunk Windows pipeline
+      |
+      v
+Splunk SPL artifact
+      |
+      +-- optional later: self-hosted runner -> Splunk REST API
 ```
 
-The included PowerShell detection and events are **synthetic demo content**.
-They do not constitute evidence from an actual investigation.
+A failed expectation stops the pipeline before SPL is published or deployment can
+occur.
 
-## First run: no Splunk required
+## Test corpus
 
-1. Create a GitHub repository, unpack this starter, commit everything, and push to
-   `main` (or any feature branch). Each push will run the checks.
-2. Open **GitHub > Actions > Detection as Code**. The pipeline validates rules,
-   backtests example events, converts to SPL, and publishes an artifact named
-   `splunk-detections-<commit SHA>` **if all tests pass**.
-3. Download the artifact and inspect the `.spl` query and `manifest.json`.
-4. Try editing the rule to match a benign command; CI should turn red. Revert it.
+| Corpus | Source | Expected matches | Purpose |
+|---|---|---:|---|
+| `malicious/agenttesla_self_spawn.ndjson` | Sanitized AgentTesla-01 Sysmon evidence | 2 | Prove the rule is loud on the observed behavior |
+| `nonmatching/agenttesla_initial_launch.ndjson` | Sanitized AgentTesla-01 Sysmon evidence | 0 | Prove the full parent/child condition is required |
+| `benign/normal_parent_child.ndjson` | Synthetic baseline | 0 | Catch obvious false-positive regressions |
 
-This artifact is a compiled **deployment candidate**, not a deployed Splunk alert.
+The real fixtures preserve the selected fields from
+`cases/Agent Tesla/evidence/sysmon-selected-events.json` in the source
+investigation. `$CASE` is the same sanitized case-root alias used there.
 
-## Run the tests locally
+The benign events are deliberately marked synthetic. Passing them does **not**
+prove the rule has a low false-positive rate on a real enterprise environment; it
+only gives the pipeline a repeatable regression baseline.
+
+## CI behavior
+
+The GitHub Actions workflow runs on pushes and pull requests:
+
+1. Validate that the NDJSON fixtures are well formed.
+2. Validate Sigma syntax and structure with RSigma.
+3. Backtest the rule against every corpus file using `ci/expectations.yml`.
+4. Stop immediately if a required positive is missed or an unexpected event fires.
+5. If tests pass, compile the rule to Splunk SPL with the
+   `splunk_windows` processing pipeline.
+6. Publish the SPL and build manifest as a GitHub Actions artifact.
+
+The optional Splunk deployment job is disabled unless the repository variable
+`ENABLE_SPLUNK_DEPLOY` is explicitly set to `true`.
+
+## Run locally
 
 Python 3.12+:
 
@@ -52,12 +97,12 @@ python -m pip install -r requirements.txt -r requirements-conversion.txt
 python -m pytest -q tests/test_fixtures.py
 ```
 
-Install the RSigma binary from <https://rsigma.io/getting-started/installation/>
-(pin to `0.25.0` to match CI), then:
+Install RSigma 0.25.0, then:
 
 ```bash
 rsigma rule validate rules/sigma/
-rsigma rule backtest --rules rules/sigma/ \
+rsigma rule backtest \
+  --rules rules/sigma/ \
   --corpus tests/sample-logs/ \
   --expectations ci/expectations.yml \
   --unexpected fail
@@ -65,69 +110,34 @@ python scripts/build_splunk.py
 python scripts/deploy_splunk.py
 ```
 
-By default, `deploy_splunk.py` is a **dry run**. No Splunk account is needed for
-these local commands except actual deployment with `--live`.
+`deploy_splunk.py` is a dry run unless `--live` is supplied.
 
-## How a test is defined
+## Optional Splunk deployment
 
-The rule has a stable UUID. `tests/sample-logs/malicious/powershell_encoded.ndjson`
-has **3 known-positive** process events; `tests/sample-logs/benign/normal_admin.ndjson`
-has **5 known-negative** process events. `ci/expectations.yml` requires **exactly
-3** and **exactly 0** rule matches, respectively. Any mismatch fails CI.
+For a private Splunk Enterprise lab:
 
-These tests evaluate the Sigma rule using RSigma. They do **not** prove that the
-translated SPL works against your exact Splunk field mappings or production log
-sources. Once you have Splunk, add an integration test that ingests representative
-Sysmon events and runs the compiled SPL against them before enabling deployment.
+1. Ingest Sysmon data and verify the generated SPL against your field mappings.
+2. Create a limited-privilege Splunk API token.
+3. Register a GitHub self-hosted Linux runner that can reach Splunk's management
+   API on HTTPS port 8089. Do not expose that management port publicly.
+4. Configure the `splunk-lab` GitHub environment and secrets
+   `SPLUNK_MANAGEMENT_URL` and `SPLUNK_TOKEN`.
+5. Set repository variable `ENABLE_SPLUNK_DEPLOY=true`.
 
-## Optional: deploy to a private Splunk lab
+Only a trusted push to `main`, after validation, backtesting, and conversion pass,
+can reach that deployment job.
 
-Splunk Enterprise trial supports alerting; **perpetual Splunk Free does not**.
-Use a trial or eligible Developer license for a nonproduction lab.
+## Next milestones
 
-1. Create a Splunk Enterprise lab and configure Sysmon event ingestion.
-2. Confirm your index/source/field mapping is compatible with the generated SPL.
-   The `splunk_windows` processing pipeline adds Splunk Windows log-source conditions
-   and maps `EventID` to `EventCode`; it **does not ensure your actual index is searched**.
-3. Create a limited-privilege Splunk API token with rights to manage the saved
-   searches in your chosen app. Install a trusted TLS certificate or configure
-   the runner to trust your lab CA.
-4. Install and register a GitHub **self-hosted Linux runner** that can access the
-   Splunk management API over HTTPS port 8089. Add the `splunk-lab` runner label.
-   Do not open port 8089 to the public internet.
-5. In GitHub, configure environment `splunk-lab` (optionally require review), add
-   secrets `SPLUNK_MANAGEMENT_URL` and `SPLUNK_TOKEN`, and set the repository variable
-   `ENABLE_SPLUNK_DEPLOY` to `true`.
-6. Only pushes to **main**, after CI tests and conversion pass, can deploy.
-
-The deployment script creates or updates scheduled saved searches via Splunk's
-REST API. It does not delete removed rules, manage permissions/owners, handle
-rollback, suppress duplicates, or measure detection quality. Those are next
-milestones. The script's initial schedule is every 5 minutes; review and tune
-before relying on it. **Do not enable live deployment from unreviewed commits.**
-
-## Extend with investigation-backed detections
-
-1. Import your existing Sigma rules into `rules/sigma/` (keep UUIDs stable).
-2. Export minimal, anonymized event examples matching the fields your rules use;
-   put malicious and benign lines in `tests/sample-logs/` as NDJSON.
-3. Add expectations **for each rule and each corpus file** you want to assert.
-4. Run backtests and inspect the compiled SPL, then add Splunk integration tests.
-5. Keep real user data, secrets, credentials, and full raw investigation dumps
-   out of public Git repositories.
-
-## Versioning and safety
-
-- GitHub Actions runs on every commit pushed to GitHub and on PRs; conversion is gated by tests.
-- Promotion to a live SIEM is off by default, needs secrets, and runs only on a
-  private lab runner. PR code never runs on that self-hosted runner.
-- Protect `main`: require passing checks and review before merging.
-- A clean backtest only measures behavior **against the included sample corpus**.
-  It is not proof of low false positive rates on all benign activity.
+- Intentionally weaken the Agent Tesla rule and verify CI blocks the regression.
+- Add another investigation-backed Sigma rule and its own positive/negative corpus.
+- Add a Splunk integration test that executes compiled SPL against representative
+  Sysmon data.
+- Deploy passing saved searches to a private Splunk lab.
+- Add detection health/telemetry and rollback handling.
 
 ## References
 
 - <https://rsigma.io/guide/ci-cd/>
 - <https://sigmahq.io/docs/>
 - <https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.6/search-endpoints/search-endpoint-descriptions>
-- <https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.6/configure-splunk-licenses/about-splunk-free>

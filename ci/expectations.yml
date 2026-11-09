@@ -1,11 +1,15 @@
-# RSigma compares each rule's observed fires to these per-corpus counts.
-# If a rule fires on benign events, the CI job must fail.
+# The two positive events and the near-miss are copied from the sanitized
+# AgentTesla-01 Sysmon evidence. The benign parent/child events are synthetic
+# baseline fixtures and are not presented as investigation evidence.
 defaults:
   unexpected_detections: fail
 expectations:
-  - rule: 91bf5505-b9b7-47e9-87c0-23945fc57865
-    corpus: malicious/powershell_encoded.ndjson
-    exactly: 3
-  - rule: 91bf5505-b9b7-47e9-87c0-23945fc57865
-    corpus: benign/normal_admin.ndjson
+  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+    corpus: malicious/agenttesla_self_spawn.ndjson
+    exactly: 2
+  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+    corpus: nonmatching/agenttesla_initial_launch.ndjson
+    exactly: 0
+  - rule: c8859ff7-c5c3-4975-9ebe-7b35d6a047f2
+    corpus: benign/normal_parent_child.ndjson
     exactly: 0
