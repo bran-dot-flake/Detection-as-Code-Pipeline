@@ -89,7 +89,7 @@ jobs:
     # Do not expose port 8089 or self-hosted runners to untrusted PR code.
     name: Deploy to private Splunk lab (optional)
     needs: [validate-and-backtest, convert-to-splunk]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_SPLUNK_DEPLOY == 'true'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && vars.ENABLE_SPLUNK_DEPLOY == 'true'
     runs-on: [self-hosted, linux, splunk-lab]
     environment: splunk-lab
     steps:
