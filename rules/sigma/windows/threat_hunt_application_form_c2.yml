@@ -1,0 +1,27 @@
+title: Threat Hunt Application Form C2 Connection
+id: e2843e43-0cbb-46b5-b96e-0e43ec22de54
+status: experimental
+description: Case-scoped Sysmon Event ID 3 detection for the observed application_form.pdf.exe connection to 13.232.55.12 on destination port 30.
+author: Detection-as-Code Lab
+date: '2026-11-09'
+references:
+  - https://github.com/bran-dot-flake/Threat-Hunting-with-Splunk-Hack-The-Box-Writeup
+logsource:
+  product: windows
+  service: sysmon
+detection:
+  selection:
+    EventID: 3
+    Image|endswith: '\application_form.pdf.exe'
+    DestinationIp: 13.232.55.12
+    DestinationPort: 30
+  condition: selection
+fields:
+  - Image
+  - DestinationIp
+  - DestinationPort
+  - ProcessId
+  - UtcTime
+falsepositives:
+  - Lab replay or reuse of the exact filename, destination IP, and destination port.
+level: high

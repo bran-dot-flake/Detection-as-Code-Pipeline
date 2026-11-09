@@ -1,0 +1,4 @@
+{"EventID":1,"ObservedTime":"2024-06-06 09:28:07.170","Image":"C:\\Users\\LetsDefend\\Downloads\\application_form.pdf.exe","CommandLine":"\"C:\\Users\\LetsDefend\\Downloads\\application_form.pdf.exe\""}
+{"EventID":1,"ObservedTime":"2024-06-06 09:28:55.870","Image":"C:\\Windows\\System32\\cmd.exe","CommandLine":"C:\\Windows\\system32\\cmd.exe","ParentImage":"C:\\Users\\LetsDefend\\Downloads\\application_form.pdf.exe","User":"DESKTOP-ND6FH5D\\LetsDefend"}
+{"EventID":1,"ObservedTime":"2024-06-06 09:31:57.220","Image":"C:\\Windows\\System32\\net1.exe","CommandLine":"C:\\Windows\\system32\\net1 user jumpadmin <REDACTED> /add"}
+{"EventID":1,"ObservedTime":"2024-06-06 09:42:08.640","Image":"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe","CommandLine":"\"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -ep bypass","ParentImage":"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe","User":"DESKTOP-ND6FH5D\\LetsDefend"}

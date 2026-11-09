@@ -1,0 +1,28 @@
+title: Executable in Downloads Spawning Windows Command Shell
+id: f0cfac8b-f900-4db1-9774-22ff45aa913e
+status: experimental
+description: Detects cmd.exe launched by an executable located under a user Downloads directory, matching the parent-child behavior observed in the Threat Hunting with Splunk investigation.
+author: Detection-as-Code Lab
+date: '2026-11-09'
+references:
+  - https://github.com/bran-dot-flake/Threat-Hunting-with-Splunk-Hack-The-Box-Writeup
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 1
+    Image|endswith: '\cmd.exe'
+    ParentImage|contains: '\Downloads\'
+  condition: selection
+fields:
+  - Image
+  - CommandLine
+  - ParentImage
+  - User
+falsepositives:
+  - Installers, developer tools, or administrative utilities executed directly from Downloads that legitimately launch cmd.exe.
+level: medium
+tags:
+  - attack.execution
+  - attack.t1059.003

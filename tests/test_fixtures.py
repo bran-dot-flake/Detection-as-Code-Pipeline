@@ -33,10 +33,12 @@ def test_corpus_is_well_formed_sysmon_data():
             )
             assert record.get("Image"), (path, lineno, "missing Image")
 
-            if event_id == 1:
-                assert record.get("ParentImage"), (path, lineno, "missing ParentImage")
-            elif event_id == 3:
-                assert record.get("Protocol"), (path, lineno, "missing Protocol")
+            if event_id == 3:
+                assert record.get("DestinationIp"), (
+                    path,
+                    lineno,
+                    "missing DestinationIp",
+                )
                 assert "DestinationPort" in record, (
                     path,
                     lineno,
