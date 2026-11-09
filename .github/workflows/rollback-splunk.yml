@@ -1,0 +1,96 @@
+name: Rollback Splunk Detections
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Deployment workflow run ID whose pre-deploy snapshot should be restored
+        required: true
+        type: string
+      confirm:
+        description: I understand this will restore the selected snapshot in Splunk
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  rollback:
+    name: Restore previous Splunk detection state
+    if: github.ref == 'refs/heads/main' && inputs.confirm == true && vars.ENABLE_SPLUNK_DEPLOY == 'true'
+    runs-on: [self-hosted, linux, splunk-lab]
+    environment: splunk-lab
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Create rollback virtual environment
+        run: |
+          python3 -m venv .venv-rollback
+          .venv-rollback/bin/python -m pip install --upgrade pip
+          .venv-rollback/bin/python -m pip install -r requirements.txt
+
+      - name: Download selected pre-deployment snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: splunk-rollback-backup
+          path: rollback-input
+          github-token: \${{ github.token }}
+          repository: \${{ github.repository }}
+          run-id: \${{ inputs.source_run_id }}
+
+      - name: Preview selected rollback snapshot
+        run: |
+          .venv-rollback/bin/python scripts/rollback_splunk.py \
+            --snapshot rollback-input/splunk-backup.json \
+            --disable-extra
+
+      - name: Snapshot current state before rollback
+        env:
+          SPLUNK_MANAGEMENT_URL: \${{ secrets.SPLUNK_MANAGEMENT_URL }}
+          SPLUNK_TOKEN: \${{ secrets.SPLUNK_TOKEN }}
+          SPLUNK_VERIFY_TLS: \${{ vars.SPLUNK_VERIFY_TLS }}
+          SPLUNK_APP: search
+        run: |
+          .venv-rollback/bin/python scripts/snapshot_splunk.py \
+            --output rollback/current-before-rollback.json
+
+      - name: Upload pre-rollback safety snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: splunk-pre-rollback-state-\${{ github.run_id }}
+          path: rollback/current-before-rollback.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Restore selected snapshot
+        env:
+          SPLUNK_MANAGEMENT_URL: \${{ secrets.SPLUNK_MANAGEMENT_URL }}
+          SPLUNK_TOKEN: \${{ secrets.SPLUNK_TOKEN }}
+          SPLUNK_VERIFY_TLS: \${{ vars.SPLUNK_VERIFY_TLS }}
+          SPLUNK_APP: search
+        run: |
+          .venv-rollback/bin/python scripts/rollback_splunk.py \
+            --snapshot rollback-input/splunk-backup.json \
+            --live \
+            --disable-extra \
+            --report-dir reports/rollback
+
+      - name: Publish rollback summary
+        if: always()
+        run: |
+          if [ -f reports/rollback/rollback-report.md ]; then
+            cat reports/rollback/rollback-report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload rollback verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: splunk-rollback-report-\${{ github.run_id }}
+          path: reports/rollback/
+          if-no-files-found: error

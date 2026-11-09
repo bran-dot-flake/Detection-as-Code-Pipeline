@@ -10,3 +10,6 @@ __pycache__/
 
 # Generated health reports
 reports/
+
+# Generated rollback snapshots
+rollback/
