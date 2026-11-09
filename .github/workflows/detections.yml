@@ -174,6 +174,12 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Validate rollback snapshot is restorable
+        run: |
+          .venv/bin/python scripts/rollback_splunk.py \
+            --snapshot rollback/splunk-backup.json \
+            --disable-extra
+
       - name: Deploy approved saved searches via Splunk REST API
         env:
           SPLUNK_MANAGEMENT_URL: ${{ secrets.SPLUNK_MANAGEMENT_URL }}
