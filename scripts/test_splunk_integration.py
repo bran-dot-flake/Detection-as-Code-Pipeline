@@ -150,10 +150,14 @@ def run_count_search(
     # This avoids depending on automatic search-time field extraction being
     # available/configured for the fresh lab sourcetype.
     raw_marker = f'DaCTestRunId*{run_id}'
+    # pySigma's Splunk backend can append pipeline commands such as
+    # "| table ..." when the Sigma rule defines a fields: section. Compose
+    # the generated SPL directly after "| search" instead of wrapping the
+    # whole generated string in parentheses.
     search = (
         f'search index="{index}" _raw="*{raw_marker}*" '
         "| spath "
-        f"| search ({compiled}) "
+        f"| search {compiled} "
         "| stats count as count"
     )
     response = session.post(
@@ -171,6 +175,11 @@ def run_count_search(
         timeout=60,
     )
     response.raise_for_status()
+    if not response.text.strip():
+        raise RuntimeError(
+            "Splunk returned an empty export response for generated search:\n"
+            + search
+        )
     return parse_export_count(response.text)
 
 
