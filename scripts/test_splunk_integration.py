@@ -163,6 +163,8 @@ def run_count_search(
             "output_mode": "json",
             # Use index time so the historical UtcTime values in fixtures do not
             # exclude newly ingested events from this integration test.
+            "earliest_time": "0",
+            "latest_time": "now",
             "index_earliest": "-10m",
             "index_latest": "now",
         },
