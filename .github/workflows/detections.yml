@@ -75,7 +75,7 @@ jobs:
         run: |
           python -m pip install -r requirements.txt -r requirements-conversion.txt
           sigma list targets
-      - name: Convert all rules with the Sysmon processing pipeline
+      - name: Convert all rules with the Splunk Windows processing pipeline
         run: python scripts/build_splunk.py
       - name: Publish passing SPL build
         uses: actions/upload-artifact@v4
